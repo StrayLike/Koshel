@@ -2,171 +2,166 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>О-го-го кишенька</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --bg: #f2f2f7;
             --card-bg: #ffffff;
-            --text-main: #000000;
+            --text-main: #1c1c1e;
             --text-muted: #8e8e93;
             --blue: #007aff;
             --green: #34c759;
             --red: #ff3b30;
             --orange: #ff9500;
-            --border: #c6c6c8;
+            --border: rgba(60, 60, 67, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.85);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
             background-color: var(--bg);
             margin: 0;
             color: var(--text-main);
             overflow-x: hidden;
+            padding-bottom: 90px; /* Місце для нижнього меню */
+            padding-top: env(safe-area-inset-top);
         }
 
-        /* Header & Menu */
+        /* Glassmorphism Header */
         .header {
-            background-color: var(--card-bg);
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
+            position: sticky; top: 0; z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 16px 20px; text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around;
+            padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0;
             z-index: 100;
         }
-        
-        .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
-        
-        .menu-btn {
-            background: none; border: none; font-size: 24px; color: var(--blue);
-            cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-muted); font-size: 11px; font-weight: 500;
+            text-decoration: none; cursor: pointer; transition: 0.2s;
         }
-
-        .side-menu {
-            position: fixed; top: 0; right: -250px; width: 250px; height: 100%;
-            background-color: var(--card-bg); box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-            transition: right 0.3s ease; z-index: 1000; padding-top: 60px;
-        }
-        .side-menu.open { right: 0; }
-        
-        .menu-item {
-            padding: 16px 20px; font-size: 18px; font-weight: 500;
-            border-bottom: 1px solid var(--border); cursor: pointer;
-        }
-        .menu-item:active { background-color: var(--bg); }
-        .menu-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 999; display: none;
-        }
-        .menu-overlay.active { display: block; }
+        .nav-item.active { color: var(--blue); }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; }
 
         /* Main Content */
         .container { padding: 16px; display: none; }
-        .container.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .container.active { display: block; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* Cards & Forms */
+        /* Modern Cards */
         .card {
-            background: var(--card-bg); border-radius: 12px; padding: 16px;
-            margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.04);
         }
-        .card h2 { margin-top: 0; font-size: 18px; margin-bottom: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .card h2 { margin: 0; font-size: 20px; font-weight: 600; }
         
+        /* Inputs & Buttons */
         input, select {
-            width: 100%; padding: 12px; margin-bottom: 12px;
-            border: 1px solid var(--border); border-radius: 8px;
-            font-size: 16px; box-sizing: border-box; background: var(--card-bg);
-            appearance: none;
+            width: 100%; padding: 14px 16px; margin-bottom: 12px;
+            border: 1px solid var(--border); border-radius: 12px;
+            font-size: 16px; box-sizing: border-box; background: var(--bg);
+            outline: none; transition: 0.2s; appearance: none;
         }
+        input:focus, select:focus { border-color: var(--blue); background: var(--card-bg); }
         
-        .btn-group { display: flex; gap: 10px; }
+        .btn-group { display: flex; gap: 12px; }
         .btn {
-            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            flex: 1; padding: 14px; border: none; border-radius: 12px;
             font-size: 16px; font-weight: 600; color: white; cursor: pointer;
-            text-align: center;
+            text-align: center; transition: transform 0.1s;
         }
-        .btn-blue { background-color: var(--blue); }
-        .btn-green { background-color: var(--green); }
-        .btn-red { background-color: var(--red); }
-        .btn-orange { background-color: var(--orange); }
+        .btn:active { transform: scale(0.97); }
+        .btn-blue { background-color: var(--blue); box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3); }
+        .btn-green { background-color: var(--green); box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3); }
+        .btn-red { background-color: var(--red); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3); }
+        .btn-orange { background-color: var(--orange); box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3); }
+        .btn-outline-red { background-color: transparent; color: var(--red); border: 1px solid var(--red); box-shadow: none; }
         
         /* Lists */
         .list-item {
-            background: var(--card-bg); border-radius: 12px; padding: 16px;
+            background: var(--card-bg); border-radius: 16px; padding: 16px;
             margin-bottom: 12px; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: 0.2s;
         }
         .list-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .list-title { font-weight: 600; font-size: 16px; }
+        .list-title { font-weight: 600; font-size: 17px; }
         .list-desc { font-size: 14px; color: var(--text-muted); }
-        .list-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .list-date { font-size: 12px; color: var(--text-muted); }
         
-        .right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .list-amount { font-weight: 700; font-size: 18px; }
+        .edit-icon { background: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 14px; border: none; color: var(--blue); font-weight: bold; }
         
         .text-green { color: var(--green); }
         .text-red { color: var(--red); }
         .text-blue { color: var(--blue); }
         .text-orange { color: var(--orange); }
         
-        .empty-state { text-align: center; color: var(--text-muted); padding: 20px; font-style: italic; }
-        .total-badge { text-align: center; font-size: 24px; font-weight: bold; padding: 10px 0 20px 0; }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 30px 20px; font-style: italic; }
+        .total-badge { text-align: center; font-size: 32px; font-weight: 800; padding: 10px 0 25px 0; letter-spacing: -1px; }
 
-        /* Modal */
-        .modal-overlay-repay {
+        /* iOS Bottom Sheet Modals */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000; display: none;
-            align-items: center; justify-content: center; padding: 20px;
+            background: rgba(0,0,0,0.4); z-index: 2000; opacity: 0; visibility: hidden;
+            transition: 0.3s; display: flex; align-items: flex-end;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-sheet {
+            background: var(--card-bg); width: 100%; border-radius: 24px 24px 0 0;
+            padding: 24px 20px calc(24px + env(safe-area-inset-bottom)) 20px;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
         }
-        .modal-overlay-repay.active { display: flex; animation: fadeIn 0.2s; }
-        .modal-content { width: 100%; max-width: 400px; margin: 0; }
+        .modal-overlay.active .modal-sheet { transform: translateY(0); }
         
-        .filters-grid {
-            display: grid; grid-template-columns: 1fr; gap: 8px;
-        }
+        .filters-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1 id="pageTitle">Джерела</h1>
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    </div>
-
-    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-item" onclick="switchTab('sourcesTab', 'Джерела')">Джерела</div>
-        <div class="menu-item" onclick="switchTab('operationsTab', 'Операції')">Операції</div>
-        <div class="menu-item" onclick="switchTab('debtsTab', 'Борги')">Борги</div>
-        <div class="menu-item" onclick="switchTab('monitoringTab', 'Моніторинг')">Моніторинг</div>
     </div>
 
     <div id="sourcesTab" class="container active">
         <div class="card">
-            <h2>Додати нове джерело</h2>
-            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Моно)">
-            <input type="text" id="sourceDesc" placeholder="Опис (напр., Для особистих витрат)">
+            <h2>Створити джерело</h2>
+            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Приват)">
+            <input type="text" id="sourceDesc" placeholder="Опис (напр., Зарплатна)">
             <input type="number" id="sourceInitBalance" placeholder="Початковий баланс (грн)">
-            <button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Створити джерело</button>
+            <button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Додати джерело</button>
         </div>
-        <h3>Мої джерела</h3>
+        <h3 style="margin-left: 5px; color: var(--text-muted);">Мої активи</h3>
         <div id="sourcesList"></div>
     </div>
 
     <div id="operationsTab" class="container">
         <div class="card">
             <h2>Нова транзакція</h2>
-            <select id="opSourceSelect">
-                <option value="">-- Виберіть джерело --</option>
-            </select>
-            <input type="text" id="opDesc" placeholder="Підпис (напр., Продукти, Зарплата)">
+            <select id="opSourceSelect"><option value="">-- Виберіть джерело --</option></select>
+            <input type="text" id="opDesc" placeholder="За що? (напр., Продукти, Зарплата)">
             <input type="number" id="opAmount" placeholder="Сума (грн)">
             <div class="btn-group">
                 <button class="btn btn-red" onclick="addTransaction('expense', false)">Витрата (-)</button>
@@ -178,26 +173,22 @@
     <div id="debtsTab" class="container">
         <div class="total-badge text-orange" id="totalDebtsLabel">Нам винні: 0 ₴</div>
         <div class="card">
-            <h2>Видати борг</h2>
-            <input type="text" id="debtPerson" placeholder="Кому (Ім'я)?">
-            <select id="debtSourceSelect">
-                <option value="">-- Звідки беремо гроші? --</option>
-            </select>
+            <h2>Дати в борг</h2>
+            <input type="text" id="debtPerson" placeholder="Кому даємо?">
+            <select id="debtSourceSelect"><option value="">-- Звідки знімаємо гроші? --</option></select>
             <input type="number" id="debtAmount" placeholder="Сума (грн)">
             <button class="btn btn-orange" style="width: 100%;" onclick="addDebt()">Видати борг</button>
         </div>
-        <h3>Активні борги</h3>
+        <h3 style="margin-left: 5px; color: var(--text-muted);">Активні борги</h3>
         <div id="debtsList"></div>
     </div>
 
     <div id="monitoringTab" class="container">
-        <div class="card" style="margin-bottom: 5px;">
+        <div class="card" style="margin-bottom: 5px; padding: 15px;">
             <div class="filters-grid">
-                <select id="monFilterSource" onchange="renderMonitoring()">
-                    <option value="all">Усі джерела</option>
-                </select>
+                <select id="monFilterSource" onchange="renderMonitoring()"><option value="all">Усі джерела</option></select>
                 <select id="monFilterType" onchange="renderMonitoring()">
-                    <option value="all">Усі операції (Доходи + Витрати)</option>
+                    <option value="all">Усі операції</option>
                     <option value="income">Тільки Доходи</option>
                     <option value="expense">Тільки Витрати</option>
                 </select>
@@ -209,50 +200,68 @@
                 </select>
             </div>
         </div>
-        <div class="total-badge text-blue" id="monTotalBalance">Баланс: 0 ₴</div>
+        <div class="total-badge text-blue" id="monTotalBalance">0 ₴</div>
         <div id="monitoringList"></div>
     </div>
 
-    <div class="modal-overlay-repay" id="repayModal">
-        <div class="modal-content card">
-            <h2>Повернення боргу</h2>
-            <p id="repayPersonName" style="margin-top: 0; font-weight: 600;"></p>
-            <input type="number" id="repayAmount" placeholder="Скільки повертають? (грн)">
-            <select id="repaySourceSelect">
-                <option value="">-- Куди зарахувати гроші? --</option>
-            </select>
-            <div class="btn-group">
-                <button class="btn btn-red" onclick="closeRepayModal()">Скасувати</button>
-                <button class="btn btn-green" onclick="confirmRepay()">Зарахувати</button>
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-sourcesTab" onclick="switchTab('sourcesTab', 'Джерела')">
+            <span class="nav-icon">💳</span><span>Джерела</span>
+        </div>
+        <div class="nav-item" id="nav-operationsTab" onclick="switchTab('operationsTab', 'Операції')">
+            <span class="nav-icon">💸</span><span>Операції</span>
+        </div>
+        <div class="nav-item" id="nav-debtsTab" onclick="switchTab('debtsTab', 'Борги')">
+            <span class="nav-icon">🤝</span><span>Борги</span>
+        </div>
+        <div class="nav-item" id="nav-monitoringTab" onclick="switchTab('monitoringTab', 'Моніторинг')">
+            <span class="nav-icon">📊</span><span>Моніторинг</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editSourceModal" onclick="if(event.target===this) closeEditModal()">
+        <div class="modal-sheet">
+            <div class="card-header">
+                <h2>Налаштування джерела</h2>
+                <button class="edit-icon" style="color: var(--text-muted); background:none; font-size:20px;" onclick="closeEditModal()">✕</button>
             </div>
+            <input type="hidden" id="editSourceId">
+            <input type="text" id="editSourceName" placeholder="Назва джерела">
+            <input type="text" id="editSourceDesc" placeholder="Опис">
+            <label style="font-size:12px; color:var(--text-muted); margin-left:5px;">Початковий баланс (редагування не йде в історію)</label>
+            <input type="number" id="editSourceBalance" placeholder="Початковий баланс">
+            
+            <button class="btn btn-blue" style="width: 100%; margin-bottom: 12px;" onclick="saveEditedSource()">Зберегти зміни</button>
+            <button class="btn btn-outline-red" style="width: 100%;" onclick="deleteSource()">🗑 Видалити джерело</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="repayModal" onclick="if(event.target===this) closeRepayModal()">
+        <div class="modal-sheet">
+            <div class="card-header">
+                <h2>Повернення боргу</h2>
+                <button class="edit-icon" style="color: var(--text-muted); background:none; font-size:20px;" onclick="closeRepayModal()">✕</button>
+            </div>
+            <p id="repayPersonName" style="margin-top: 0; margin-bottom: 20px; font-weight: 500; color: var(--blue);"></p>
+            <input type="number" id="repayAmount" placeholder="Скільки повертають? (грн)">
+            <select id="repaySourceSelect"><option value="">-- Куди зарахувати гроші? --</option></select>
+            <button class="btn btn-green" style="width: 100%;" onclick="confirmRepay()">Зарахувати</button>
         </div>
     </div>
 
     <script>
-        let appData = JSON.parse(localStorage.getItem('ogogo_v3')) || {
-            sources: [],
-            transactions: [],
-            debts: []
-        };
-
+        let appData = JSON.parse(localStorage.getItem('ogogo_v4')) || { sources: [], transactions: [], debts: [] };
         let currentRepayDebtId = null;
 
-        function saveData() {
-            localStorage.setItem('ogogo_v3', JSON.stringify(appData));
-        }
-
-        function toggleMenu() {
-            const menu = document.getElementById('sideMenu');
-            const overlay = document.getElementById('menuOverlay');
-            menu.classList.toggle('open');
-            overlay.classList.toggle('active');
-        }
+        function saveData() { localStorage.setItem('ogogo_v4', JSON.stringify(appData)); }
 
         function switchTab(tabId, title) {
             document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
             document.getElementById(tabId).classList.add('active');
+            document.getElementById('nav-' + tabId).classList.add('active');
             document.getElementById('pageTitle').innerText = title;
-            toggleMenu();
             
             updateSelects();
             if (tabId === 'sourcesTab') renderSources();
@@ -265,15 +274,13 @@
             return d.toLocaleDateString('uk-UA') + ' ' + d.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
         }
 
-        // ДЖЕРЕЛА
+        /* --- ДЖЕРЕЛА --- */
         function getSourceBalance(sourceId) {
             const source = appData.sources.find(s => s.id === sourceId);
             if (!source) return 0;
             let balance = source.initialBalance;
             appData.transactions.forEach(t => {
-                if (t.sourceId === sourceId) {
-                    balance += (t.type === 'income' ? t.amount : -t.amount);
-                }
+                if (t.sourceId === sourceId) balance += (t.type === 'income' ? t.amount : -t.amount);
             });
             return balance;
         }
@@ -285,33 +292,24 @@
 
             if (!name) return alert('Введіть назву джерела!');
 
-            appData.sources.push({
-                id: Date.now().toString(),
-                name: name,
-                description: desc,
-                initialBalance: initBal
-            });
+            appData.sources.push({ id: Date.now().toString(), name, description: desc, initialBalance: initBal });
 
             document.getElementById('sourceName').value = '';
             document.getElementById('sourceDesc').value = '';
             document.getElementById('sourceInitBalance').value = '';
             
-            saveData();
-            renderSources();
-            updateSelects();
+            saveData(); renderSources(); updateSelects();
         }
 
         function renderSources() {
             const list = document.getElementById('sourcesList');
             list.innerHTML = '';
-            
             if (appData.sources.length === 0) {
-                list.innerHTML = '<div class="empty-state">Ще немає джерел. Додайте перше вище.</div>';
-                return;
+                list.innerHTML = '<div class="empty-state">У вас ще немає доданих джерел.</div>'; return;
             }
 
             appData.sources.forEach(src => {
-                const currentBalance = getSourceBalance(src.id);
+                const bal = getSourceBalance(src.id);
                 list.innerHTML += `
                     <div class="list-item">
                         <div class="list-info">
@@ -319,233 +317,183 @@
                             <span class="list-desc">${src.description}</span>
                         </div>
                         <div class="right-side">
-                            <span class="list-amount ${currentBalance >= 0 ? 'text-blue' : 'text-red'}">${currentBalance} ₴</span>
+                            <span class="list-amount ${bal >= 0 ? 'text-main' : 'text-red'}">${bal} ₴</span>
+                            <button class="edit-icon" onclick="openEditModal('${src.id}')">Редагувати</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // ОНОВЛЕННЯ ВСІХ ВИПАДАЮЧИХ СПИСКІВ
+        /* --- РЕДАГУВАННЯ / ВИДАЛЕННЯ ДЖЕРЕЛ --- */
+        function openEditModal(id) {
+            const src = appData.sources.find(s => s.id === id);
+            if(!src) return;
+            document.getElementById('editSourceId').value = src.id;
+            document.getElementById('editSourceName').value = src.name;
+            document.getElementById('editSourceDesc').value = src.description;
+            document.getElementById('editSourceBalance').value = src.initialBalance;
+            document.getElementById('editSourceModal').classList.add('active');
+        }
+
+        function closeEditModal() { document.getElementById('editSourceModal').classList.remove('active'); }
+
+        function saveEditedSource() {
+            const id = document.getElementById('editSourceId').value;
+            const src = appData.sources.find(s => s.id === id);
+            if(!src) return;
+
+            src.name = document.getElementById('editSourceName').value.trim() || src.name;
+            src.description = document.getElementById('editSourceDesc').value.trim();
+            src.initialBalance = parseFloat(document.getElementById('editSourceBalance').value) || 0;
+
+            saveData(); closeEditModal(); renderSources(); updateSelects();
+        }
+
+        function deleteSource() {
+            if(!confirm('Точно видалити це джерело? Історія операцій за ним залишиться, але саме джерело зникне.')) return;
+            const id = document.getElementById('editSourceId').value;
+            appData.sources = appData.sources.filter(s => s.id !== id);
+            saveData(); closeEditModal(); renderSources(); updateSelects();
+        }
+
         function updateSelects() {
             const opSelect = document.getElementById('opSourceSelect');
             const debtSelect = document.getElementById('debtSourceSelect');
             const repaySelect = document.getElementById('repaySourceSelect');
             const monSelect = document.getElementById('monFilterSource');
-            
             const monCurrentVal = monSelect.value;
             
-            opSelect.innerHTML = '<option value="">-- Виберіть джерело --</option>';
-            debtSelect.innerHTML = '<option value="">-- Звідки беремо гроші? --</option>';
-            repaySelect.innerHTML = '<option value="">-- Куди зарахувати гроші? --</option>';
-            monSelect.innerHTML = '<option value="all">Усі джерела</option>';
-
-            appData.sources.forEach(src => {
-                const opt = `<option value="${src.id}">${src.name}</option>`;
-                opSelect.innerHTML += opt;
-                debtSelect.innerHTML += opt;
-                repaySelect.innerHTML += opt;
-                monSelect.innerHTML += opt;
-            });
+            const opts = '<option value="">-- Виберіть джерело --</option>' + appData.sources.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             
+            opSelect.innerHTML = opts; debtSelect.innerHTML = opts; repaySelect.innerHTML = opts;
+            monSelect.innerHTML = '<option value="all">Усі джерела</option>' + appData.sources.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             if(monCurrentVal) monSelect.value = monCurrentVal;
         }
 
-        // ОПЕРАЦІЇ
+        /* --- ОПЕРАЦІЇ --- */
         function addTransaction(type, isDebtInternal = false, forceSourceId = null, forceDesc = null, forceAmount = null) {
             const sourceId = isDebtInternal ? forceSourceId : document.getElementById('opSourceSelect').value;
             const desc = isDebtInternal ? forceDesc : document.getElementById('opDesc').value.trim();
             const amount = isDebtInternal ? forceAmount : parseFloat(document.getElementById('opAmount').value);
 
-            if (!sourceId) return alert('Виберіть джерело!');
-            if (!desc) return alert('Додайте підпис операції!');
-            if (!amount || amount <= 0) return alert('Введіть коректну суму!');
+            if (!sourceId || !desc || !amount || amount <= 0) {
+                if(!isDebtInternal) alert('Заповніть всі поля коректно!'); return;
+            }
 
-            appData.transactions.push({
-                id: Date.now().toString() + Math.random().toString(),
-                sourceId: sourceId,
-                description: desc,
-                amount: amount,
-                type: type,
-                date: new Date().toISOString()
-            });
+            appData.transactions.push({ id: Date.now().toString(), sourceId, description: desc, amount, type, date: new Date().toISOString() });
 
             if(!isDebtInternal) {
-                document.getElementById('opDesc').value = '';
-                document.getElementById('opAmount').value = '';
+                document.getElementById('opDesc').value = ''; document.getElementById('opAmount').value = '';
                 document.getElementById('opSourceSelect').value = '';
-                saveData();
-                alert('Транзакцію додано!');
+                saveData(); alert('Транзакцію успішно додано!');
             }
         }
 
-        // БОРГИ
+        /* --- БОРГИ --- */
         function addDebt() {
             const person = document.getElementById('debtPerson').value.trim();
             const sourceId = document.getElementById('debtSourceSelect').value;
             const amount = parseFloat(document.getElementById('debtAmount').value);
 
-            if (!person) return alert('Вкажіть, кому видаєте борг!');
-            if (!sourceId) return alert('Оберіть джерело, з якого знімаються гроші!');
-            if (!amount || amount <= 0) return alert('Введіть суму боргу!');
-
-            const srcBalance = getSourceBalance(sourceId);
-            if(amount > srcBalance) {
-                if(!confirm('Увага! На цьому джерелі недостатньо коштів. Все одно видати борг (баланс піде в мінус)?')) return;
+            if (!person || !sourceId || !amount || amount <= 0) return alert('Заповніть всі поля!');
+            if (amount > getSourceBalance(sourceId)) {
+                if(!confirm('Недостатньо коштів на джерелі. Баланс піде в мінус. Продовжити?')) return;
             }
 
-            // Додаємо запис боргу
-            appData.debts.push({
-                id: Date.now().toString(),
-                person: person,
-                remainingAmount: amount,
-                date: new Date().toISOString()
-            });
-
-            // Автоматично створюємо транзакцію-витрату
+            appData.debts.push({ id: Date.now().toString(), person, remainingAmount: amount, date: new Date().toISOString() });
             addTransaction('expense', true, sourceId, `Борг (${person})`, amount);
 
-            document.getElementById('debtPerson').value = '';
-            document.getElementById('debtAmount').value = '';
+            document.getElementById('debtPerson').value = ''; document.getElementById('debtAmount').value = '';
             document.getElementById('debtSourceSelect').value = '';
-
-            saveData();
-            renderDebts();
+            saveData(); renderDebts();
         }
 
         function renderDebts() {
             const list = document.getElementById('debtsList');
-            const totalLabel = document.getElementById('totalDebtsLabel');
-            list.innerHTML = '';
-            
-            let totalOwed = 0;
+            let totalOwed = 0; list.innerHTML = '';
 
             if (appData.debts.length === 0) {
                 list.innerHTML = '<div class="empty-state">У вас немає активних боргів.</div>';
-                totalLabel.innerText = `Нам винні: 0 ₴`;
-                return;
+            } else {
+                appData.debts.forEach(debt => {
+                    totalOwed += debt.remainingAmount;
+                    list.innerHTML += `
+                        <div class="list-item">
+                            <div class="list-info">
+                                <span class="list-title">👤 ${debt.person}</span>
+                                <span class="list-date">Видано: ${formatDate(debt.date)}</span>
+                            </div>
+                            <div class="right-side">
+                                <span class="list-amount text-orange">${debt.remainingAmount} ₴</span>
+                                <button class="edit-icon" onclick="openRepayModal('${debt.id}')">Повернути</button>
+                            </div>
+                        </div>`;
+                });
             }
-
-            appData.debts.forEach(debt => {
-                totalOwed += debt.remainingAmount;
-                list.innerHTML += `
-                    <div class="list-item">
-                        <div class="list-info">
-                            <span class="list-title">👤 ${debt.person}</span>
-                            <span class="list-date">Видано: ${formatDate(debt.date)}</span>
-                        </div>
-                        <div class="right-side">
-                            <span class="list-amount text-orange">${debt.remainingAmount} ₴</span>
-                            <button class="btn btn-blue" style="padding: 6px 12px; font-size: 14px;" onclick="openRepayModal('${debt.id}')">Повернути</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            totalLabel.innerText = `Нам винні: ${totalOwed} ₴`;
+            document.getElementById('totalDebtsLabel').innerText = `Нам винні: ${totalOwed} ₴`;
         }
 
         function openRepayModal(debtId) {
             currentRepayDebtId = debtId;
             const debt = appData.debts.find(d => d.id === debtId);
-            document.getElementById('repayPersonName').innerText = `Повертає: ${debt.person} (Борг: ${debt.remainingAmount} ₴)`;
-            document.getElementById('repayAmount').value = '';
-            document.getElementById('repaySourceSelect').value = '';
+            document.getElementById('repayPersonName').innerText = `Повертає: ${debt.person} (Залишок: ${debt.remainingAmount} ₴)`;
+            document.getElementById('repayAmount').value = ''; document.getElementById('repaySourceSelect').value = '';
             document.getElementById('repayModal').classList.add('active');
         }
 
-        function closeRepayModal() {
-            currentRepayDebtId = null;
-            document.getElementById('repayModal').classList.remove('active');
-        }
+        function closeRepayModal() { document.getElementById('repayModal').classList.remove('active'); }
 
         function confirmRepay() {
             const amount = parseFloat(document.getElementById('repayAmount').value);
             const sourceId = document.getElementById('repaySourceSelect').value;
 
-            if (!amount || amount <= 0) return alert('Введіть правильну суму!');
-            if (!sourceId) return alert('Виберіть, куди зарахувати гроші!');
-
+            if (!amount || amount <= 0 || !sourceId) return alert('Заповніть суму та виберіть джерело!');
+            
             const debtIndex = appData.debts.findIndex(d => d.id === currentRepayDebtId);
             if (debtIndex === -1) return closeRepayModal();
-
             const debt = appData.debts[debtIndex];
 
-            if (amount > debt.remainingAmount) {
-                return alert(`Помилка: сума повернення більша за сам борг (${debt.remainingAmount} ₴)!`);
-            }
+            if (amount > debt.remainingAmount) return alert('Сума більша за борг!');
 
-            // Зменшуємо борг
             debt.remainingAmount -= amount;
+            addTransaction('income', true, sourceId, `Повернення боргу (${debt.person})`, amount);
 
-            // Створюємо транзакцію-дохід
-            addTransaction('income', true, sourceId, `Повернення боргу від (${debt.person})`, amount);
+            if (debt.remainingAmount <= 0) appData.debts.splice(debtIndex, 1);
 
-            // Якщо борг віддали повністю — видаляємо його
-            if (debt.remainingAmount <= 0) {
-                appData.debts.splice(debtIndex, 1);
-            }
-
-            saveData();
-            closeRepayModal();
-            renderDebts();
+            saveData(); closeRepayModal(); renderDebts();
         }
 
-        // МОНІТОРИНГ З ФІЛЬТРАЦІЄЮ
+        /* --- МОНІТОРИНГ --- */
         function renderMonitoring() {
             const filterSource = document.getElementById('monFilterSource').value;
             const filterType = document.getElementById('monFilterType').value;
             const sortMode = document.getElementById('monSort').value;
-            
             const list = document.getElementById('monitoringList');
-            const balanceLabel = document.getElementById('monTotalBalance');
+            
+            let filteredTxs = [...appData.transactions];
+            if (filterSource !== 'all') filteredTxs = filteredTxs.filter(t => t.sourceId === filterSource);
+            if (filterType !== 'all') filteredTxs = filteredTxs.filter(t => t.type === filterType);
+
+            let displayBalance = 0;
+            if (filterSource === 'all') appData.sources.forEach(src => { displayBalance += getSourceBalance(src.id); });
+            else displayBalance = getSourceBalance(filterSource);
+
+            document.getElementById('monTotalBalance').innerText = `${displayBalance} ₴`;
             list.innerHTML = '';
 
-            let filteredTxs = [...appData.transactions];
+            if (filteredTxs.length === 0) { list.innerHTML = '<div class="empty-state">Операцій не знайдено.</div>'; return; }
 
-            // 1. Фільтр за джерелом
-            if (filterSource !== 'all') {
-                filteredTxs = filteredTxs.filter(t => t.sourceId === filterSource);
-            }
-            
-            // 2. Фільтр за типом
-            if (filterType !== 'all') {
-                filteredTxs = filteredTxs.filter(t => t.type === filterType);
-            }
+            if (sortMode === 'dateDesc') filteredTxs.sort((a, b) => new Date(b.date) - new Date(a.date));
+            else if (sortMode === 'dateAsc') filteredTxs.sort((a, b) => new Date(a.date) - new Date(b.date));
+            else if (sortMode === 'amountDesc') filteredTxs.sort((a, b) => b.amount - a.amount);
+            else if (sortMode === 'amountAsc') filteredTxs.sort((a, b) => a.amount - b.amount);
 
-            // Рахуємо баланс тільки для відображених джерел (без урахування фільтру типу, щоб бачити реальний стан джерела)
-            let displayBalance = 0;
-            if (filterSource === 'all') {
-                appData.sources.forEach(src => { displayBalance += getSourceBalance(src.id); });
-            } else {
-                displayBalance = getSourceBalance(filterSource);
-            }
-
-            balanceLabel.innerText = `Баланс: ${displayBalance} ₴`;
-            balanceLabel.className = `total-badge ${displayBalance >= 0 ? 'text-blue' : 'text-red'}`;
-
-            if (filteredTxs.length === 0) {
-                list.innerHTML = '<div class="empty-state">Операцій за вибраними фільтрами не знайдено.</div>';
-                return;
-            }
-
-            // 3. Сортування
-            if (sortMode === 'dateDesc') {
-                filteredTxs.sort((a, b) => new Date(b.date) - new Date(a.date));
-            } else if (sortMode === 'dateAsc') {
-                filteredTxs.sort((a, b) => new Date(a.date) - new Date(b.date));
-            } else if (sortMode === 'amountDesc') {
-                filteredTxs.sort((a, b) => b.amount - a.amount);
-            } else if (sortMode === 'amountAsc') {
-                filteredTxs.sort((a, b) => a.amount - b.amount);
-            }
-
-            // Вивід списку
             filteredTxs.forEach(tx => {
                 const source = appData.sources.find(s => s.id === tx.sourceId);
                 const sourceName = source ? source.name : 'Видалене джерело';
+                const color = tx.type === 'income' ? 'text-green' : 'text-red';
                 const sign = tx.type === 'income' ? '+' : '-';
-                const colorClass = tx.type === 'income' ? 'text-green' : 'text-red';
 
                 list.innerHTML += `
                     <div class="list-item">
@@ -554,22 +502,12 @@
                             <span class="list-desc">${sourceName}</span>
                             <span class="list-date">${formatDate(tx.date)}</span>
                         </div>
-                        <div class="right-side">
-                            <span class="list-amount ${colorClass}">${sign}${tx.amount} ₴</span>
-                        </div>
-                    </div>
-                `;
+                        <div class="list-amount ${color}">${sign}${tx.amount} ₴</div>
+                    </div>`;
             });
         }
 
-        // Запуск
-        window.onload = () => {
-            updateSelects();
-            renderSources();
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js');
-            }
-        };
+        window.onload = () => { updateSelects(); renderSources(); };
     </script>
 </body>
 </html>

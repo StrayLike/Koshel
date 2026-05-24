@@ -1,127 +1,373 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>О-го-го кишенька</title>
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-body { font-family: -apple-system, sans-serif; background-color: #f5f5f7; margin: 0; padding: 20px; color: #1d1d1f; }
-h1 { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
-h3 { font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
-.total-balance { font-size: 22px; font-weight: 700; color: #34c759; margin-bottom: 20px; }
-.card { background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #d2d2d7; box-sizing: border-box; font-size: 16px; }
-button { background-color: #0071e3; color: white; border: none; font-weight: 500; }
-.quick-btn-group { display: flex; gap: 10px; }
-.quick-btn { background-color: #ff9500; flex: 1; margin: 0; }
-ul { list-style: none; padding: 0; margin: 0; }
-li { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.delete-btn { width: auto; display: inline; padding: 6px 12px; margin: 0; background: #ff3b30; color: white; border-radius: 6px; border: none; font-size: 14px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>О-го-го кишенька</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <style>
+        :root {
+            --bg: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-main: #000000;
+            --text-muted: #8e8e93;
+            --blue: #007aff;
+            --green: #34c759;
+            --red: #ff3b30;
+            --border: #c6c6c8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Header & Menu */
+        .header {
+            background-color: var(--card-bg);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+        
+        .menu-btn {
+            background: none; border: none; font-size: 24px; color: var(--blue);
+            cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;
+        }
+
+        .side-menu {
+            position: fixed; top: 0; right: -250px; width: 250px; height: 100%;
+            background-color: var(--card-bg); box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease; z-index: 1000; padding-top: 60px;
+        }
+        .side-menu.open { right: 0; }
+        
+        .menu-item {
+            padding: 16px 20px; font-size: 18px; font-weight: 500;
+            border-bottom: 1px solid var(--border); cursor: pointer;
+        }
+        .menu-item:active { background-color: var(--bg); }
+        .menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 999; display: none;
+        }
+        .menu-overlay.active { display: block; }
+
+        /* Main Content */
+        .container { padding: 16px; display: none; }
+        .container.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Cards & Forms */
+        .card {
+            background: var(--card-bg); border-radius: 12px; padding: 16px;
+            margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card h2 { margin-top: 0; font-size: 18px; margin-bottom: 12px; }
+        
+        input, select {
+            width: 100%; padding: 12px; margin-bottom: 12px;
+            border: 1px solid var(--border); border-radius: 8px;
+            font-size: 16px; box-sizing: border-box; background: var(--card-bg);
+            appearance: none;
+        }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; color: white; cursor: pointer;
+        }
+        .btn-blue { background-color: var(--blue); }
+        .btn-green { background-color: var(--green); }
+        .btn-red { background-color: var(--red); }
+        
+        /* Lists */
+        .list-item {
+            background: var(--card-bg); border-radius: 12px; padding: 16px;
+            margin-bottom: 12px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .list-info { display: flex; flex-direction: column; gap: 4px; }
+        .list-title { font-weight: 600; font-size: 16px; }
+        .list-desc { font-size: 14px; color: var(--text-muted); }
+        .list-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .list-amount { font-weight: 700; font-size: 18px; }
+        
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        .text-blue { color: var(--blue); }
+        
+        .empty-state { text-align: center; color: var(--text-muted); padding: 20px; font-style: italic; }
+        .total-badge { text-align: center; font-size: 24px; font-weight: bold; padding: 10px 0 20px 0; }
+    </style>
 </head>
 <body>
 
-<h1>О-го-го кишенька</h1>
-<div class="total-balance" id="totalBalance">Капітал: 0 грн</div>
+    <div class="header">
+        <h1 id="pageTitle">Джерела</h1>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    </div>
 
-<div class="card">
-<h3 style="margin-top:0;">Швидкі витрати</h3>
-<div class="quick-btn-group">
-<button class="quick-btn" onclick="addQuick(-50)">-50 ₴</button>
-<button class="quick-btn" onclick="addQuick(-100)">-100 ₴</button>
-<button class="quick-btn" onclick="addQuick(-500)">-500 ₴</button>
-</div>
-</div>
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-item" onclick="switchTab('sourcesTab', 'Джерела')">Джерела</div>
+        <div class="menu-item" onclick="switchTab('operationsTab', 'Операції')">Операції</div>
+        <div class="menu-item" onclick="switchTab('monitoringTab', 'Моніторинг')">Моніторинг</div>
+    </div>
 
-<div class="card">
-<h3 style="margin-top:0;">Новий запис</h3>
-<input type="text" id="title" placeholder="Назва (напр., Монобанк, Борг Владу)">
-<input type="number" id="amount" placeholder="Сума">
-<select id="category">
-<option value="Джерело">Джерело (Картки/Гаманець)</option>
-<option value="Борг">Борг</option>
-<option value="Заощадження">Заощадження</option>
-</select>
-<button onclick="addItem()">Додати</button>
-</div>
+    <div id="sourcesTab" class="container active">
+        <div class="card">
+            <h2>Додати нове джерело</h2>
+            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Моно)">
+            <input type="text" id="sourceDesc" placeholder="Опис (напр., Для особистих витрат)">
+            <input type="number" id="sourceInitBalance" placeholder="Початковий баланс (грн)">
+            <button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Створити джерело</button>
+        </div>
+        <h3>Мої джерела</h3>
+        <div id="sourcesList"></div>
+    </div>
 
-<h3>Мої фінанси</h3>
-<ul id="sourcesList"></ul>
+    <div id="operationsTab" class="container">
+        <div class="card">
+            <h2>Нова транзакція</h2>
+            <select id="opSourceSelect">
+                <option value="">-- Виберіть джерело --</option>
+            </select>
+            <input type="text" id="opDesc" placeholder="Підпис (напр., Продукти, Зарплата)">
+            <input type="number" id="opAmount" placeholder="Сума (грн)">
+            <div class="btn-group">
+                <button class="btn btn-red" onclick="addTransaction('expense')">Витрата (-)</button>
+                <button class="btn btn-green" onclick="addTransaction('income')">Дохід (+)</button>
+            </div>
+        </div>
+    </div>
 
-<h3>Борги</h3>
-<ul id="debtsList"></ul>
+    <div id="monitoringTab" class="container">
+        <div class="card" style="margin-bottom: 5px;">
+            <select id="monFilterSelect" onchange="renderMonitoring()">
+                <option value="all">Усі джерела</option>
+            </select>
+        </div>
+        <div class="total-badge text-blue" id="monTotalBalance">Баланс: 0 ₴</div>
+        <div id="monitoringList"></div>
+    </div>
 
-<h3>Заощадження</h3>
-<ul id="savingsList"></ul>
+    <script>
+        // Ініціалізація даних з localStorage
+        let appData = JSON.parse(localStorage.getItem('ogogo_v2')) || {
+            sources: [],
+            transactions: []
+        };
 
-<script>
-if ('serviceWorker' in navigator) {
-navigator.serviceWorker.register('sw.js');
-}
+        // Функція збереження
+        function saveData() {
+            localStorage.setItem('ogogo_v2', JSON.stringify(appData));
+        }
 
-function loadItems() {
-document.getElementById('sourcesList').innerHTML = '';
-document.getElementById('debtsList').innerHTML = '';
-document.getElementById('savingsList').innerHTML = '';
+        // Керування меню
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
 
-const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-let total = 0;
+        // Перемикання вкладок
+        function switchTab(tabId, title) {
+            document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('pageTitle').innerText = title;
+            toggleMenu();
+            
+            // Оновлюємо дані при перемиканні
+            if (tabId === 'sourcesTab') renderSources();
+            if (tabId === 'operationsTab') updateSelects();
+            if (tabId === 'monitoringTab') {
+                updateSelects();
+                renderMonitoring();
+            }
+        }
 
-items.forEach((item, index) => {
-const li = document.createElement('li');
-li.innerHTML = `<span>${item.title}</span> <span>${item.amount} грн <button class="delete-btn" onclick="deleteItem(${index})">X</button></span>`;
+        // Форматування дати
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleDateString('uk-UA') + ' ' + d.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
+        }
 
-let amt = parseFloat(item.amount) || 0;
+        // --- ЛОГІКА ДЖЕРЕЛ ---
+        function getSourceBalance(sourceId) {
+            const source = appData.sources.find(s => s.id === sourceId);
+            if (!source) return 0;
+            let balance = source.initialBalance;
+            appData.transactions.forEach(t => {
+                if (t.sourceId === sourceId) {
+                    balance += (t.type === 'income' ? t.amount : -t.amount);
+                }
+            });
+            return balance;
+        }
 
-if (item.category === 'Борг') {
-document.getElementById('debtsList').appendChild(li);
-total -= amt;
-} else if (item.category === 'Заощадження') {
-document.getElementById('savingsList').appendChild(li);
-total += amt;
-} else {
-document.getElementById('sourcesList').appendChild(li);
-total += amt;
-}
-});
+        function addSource() {
+            const name = document.getElementById('sourceName').value.trim();
+            const desc = document.getElementById('sourceDesc').value.trim();
+            const initBal = parseFloat(document.getElementById('sourceInitBalance').value) || 0;
 
-document.getElementById('totalBalance').innerText = `Капітал: ${total} грн`;
-}
+            if (!name) return alert('Введіть назву джерела!');
 
-function addItem() {
-const title = document.getElementById('title').value;
-const amount = document.getElementById('amount').value;
-const category = document.getElementById('category').value;
+            appData.sources.push({
+                id: Date.now().toString(),
+                name: name,
+                description: desc,
+                initialBalance: initBal
+            });
 
-if (!title || !amount) return;
+            document.getElementById('sourceName').value = '';
+            document.getElementById('sourceDesc').value = '';
+            document.getElementById('sourceInitBalance').value = '';
+            
+            saveData();
+            renderSources();
+            updateSelects();
+        }
 
-const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-items.push({ title, amount, category });
-localStorage.setItem('finance_items', JSON.stringify(items));
+        function renderSources() {
+            const list = document.getElementById('sourcesList');
+            list.innerHTML = '';
+            
+            if (appData.sources.length === 0) {
+                list.innerHTML = '<div class="empty-state">Ще немає джерел. Додайте перше вище.</div>';
+                return;
+            }
 
-document.getElementById('title').value = '';
-document.getElementById('amount').value = '';
-loadItems();
-}
+            appData.sources.forEach(src => {
+                const currentBalance = getSourceBalance(src.id);
+                list.innerHTML += `
+                    <div class="list-item">
+                        <div class="list-info">
+                            <span class="list-title">${src.name}</span>
+                            <span class="list-desc">${src.description}</span>
+                        </div>
+                        <div class="list-amount ${currentBalance >= 0 ? 'text-blue' : 'text-red'}">
+                            ${currentBalance} ₴
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-function addQuick(amount) {
-const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-items.push({ title: 'Швидка витрата', amount: amount, category: 'Джерело' });
-localStorage.setItem('finance_items', JSON.stringify(items));
-loadItems();
-}
+        // --- ЛОГІКА ОПЕРАЦІЙ ---
+        function updateSelects() {
+            const opSelect = document.getElementById('opSourceSelect');
+            const monSelect = document.getElementById('monFilterSelect');
+            
+            opSelect.innerHTML = '<option value="">-- Виберіть джерело --</option>';
+            monSelect.innerHTML = '<option value="all">Усі джерела</option>';
 
-function deleteItem(index) {
-const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-items.splice(index, 1);
-localStorage.setItem('finance_items', JSON.stringify(items));
-loadItems();
-}
+            appData.sources.forEach(src => {
+                opSelect.innerHTML += `<option value="${src.id}">${src.name}</option>`;
+                monSelect.innerHTML += `<option value="${src.id}">${src.name}</option>`;
+            });
+        }
 
-window.onload = loadItems;
-</script>
+        function addTransaction(type) {
+            const sourceId = document.getElementById('opSourceSelect').value;
+            const desc = document.getElementById('opDesc').value.trim();
+            const amount = parseFloat(document.getElementById('opAmount').value);
+
+            if (!sourceId) return alert('Виберіть джерело!');
+            if (!desc) return alert('Додайте підпис операції!');
+            if (!amount || amount <= 0) return alert('Введіть коректну суму!');
+
+            appData.transactions.push({
+                id: Date.now().toString(),
+                sourceId: sourceId,
+                description: desc,
+                amount: amount,
+                type: type, // 'income' або 'expense'
+                date: new Date().toISOString()
+            });
+
+            document.getElementById('opDesc').value = '';
+            document.getElementById('opAmount').value = '';
+            document.getElementById('opSourceSelect').value = '';
+
+            saveData();
+            alert('Успішно додано!');
+        }
+
+        // --- ЛОГІКА МОНІТОРИНГУ ---
+        function renderMonitoring() {
+            const filterId = document.getElementById('monFilterSelect').value;
+            const list = document.getElementById('monitoringList');
+            const balanceLabel = document.getElementById('monTotalBalance');
+            list.innerHTML = '';
+
+            // Фільтрація транзакцій
+            let filteredTxs = appData.transactions;
+            if (filterId !== 'all') {
+                filteredTxs = appData.transactions.filter(t => t.sourceId === filterId);
+            }
+
+            // Розрахунок балансу для обраного фільтру
+            let displayBalance = 0;
+            if (filterId === 'all') {
+                appData.sources.forEach(src => { displayBalance += getSourceBalance(src.id); });
+            } else {
+                displayBalance = getSourceBalance(filterId);
+            }
+
+            balanceLabel.innerText = `Баланс: ${displayBalance} ₴`;
+            balanceLabel.className = `total-badge ${displayBalance >= 0 ? 'text-blue' : 'text-red'}`;
+
+            if (filteredTxs.length === 0) {
+                list.innerHTML = '<div class="empty-state">Операцій не знайдено.</div>';
+                return;
+            }
+
+            // Сортування (найновіші зверху)
+            filteredTxs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filteredTxs.forEach(tx => {
+                const source = appData.sources.find(s => s.id === tx.sourceId);
+                const sourceName = source ? source.name : 'Видалене джерело';
+                const sign = tx.type === 'income' ? '+' : '-';
+                const colorClass = tx.type === 'income' ? 'text-green' : 'text-red';
+
+                list.innerHTML += `
+                    <div class="list-item">
+                        <div class="list-info">
+                            <span class="list-title">${tx.description}</span>
+                            <span class="list-desc">${sourceName}</span>
+                            <span class="list-date">${formatDate(tx.date)}</span>
+                        </div>
+                        <div class="list-amount ${colorClass}">
+                            ${sign}${tx.amount} ₴
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Запуск при завантаженні
+        window.onload = () => {
+            renderSources();
+            updateSelects();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js');
+            }
+        };
+    </script>
 </body>
 </html>

@@ -1,119 +1,127 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мій Гаманець</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f7;
-            margin: 0;
-            padding: 20px;
-            color: #1d1d1f;
-        }
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .card {
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: 1px solid #d2d2d7;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        button {
-            background-color: #0071e3;
-            color: white;
-            border: none;
-            font-weight: 500;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            background: white;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>О-го-го кишенька</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+body { font-family: -apple-system, sans-serif; background-color: #f5f5f7; margin: 0; padding: 20px; color: #1d1d1f; }
+h1 { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+h3 { font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
+.total-balance { font-size: 22px; font-weight: 700; color: #34c759; margin-bottom: 20px; }
+.card { background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #d2d2d7; box-sizing: border-box; font-size: 16px; }
+button { background-color: #0071e3; color: white; border: none; font-weight: 500; }
+.quick-btn-group { display: flex; gap: 10px; }
+.quick-btn { background-color: #ff9500; flex: 1; margin: 0; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.delete-btn { width: auto; display: inline; padding: 6px 12px; margin: 0; background: #ff3b30; color: white; border-radius: 6px; border: none; font-size: 14px; }
+</style>
 </head>
 <body>
 
-    <h1>Фінансовий трекер</h1>
-    
-    <div class="card">
-        <input type="text" id="title" placeholder="Назва (напр., Борг Петру, Картка)">
-        <input type="number" id="amount" placeholder="Сума">
-        <select id="category">
-            <option value="Гаманець">Гаманець</option>
-            <option value="Картка">Картка</option>
-            <option value="Борг">Борг</option>
-            <option value="Збереження">Збереження</option>
-        </select>
-        <button onclick="addItem()">Додати</button>
-    </div>
+<h1>О-го-го кишенька</h1>
+<div class="total-balance" id="totalBalance">Капітал: 0 грн</div>
 
-    <ul id="list"></ul>
+<div class="card">
+<h3 style="margin-top:0;">Швидкі витрати</h3>
+<div class="quick-btn-group">
+<button class="quick-btn" onclick="addQuick(-50)">-50 ₴</button>
+<button class="quick-btn" onclick="addQuick(-100)">-100 ₴</button>
+<button class="quick-btn" onclick="addQuick(-500)">-500 ₴</button>
+</div>
+</div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+<div class="card">
+<h3 style="margin-top:0;">Новий запис</h3>
+<input type="text" id="title" placeholder="Назва (напр., Монобанк, Борг Владу)">
+<input type="number" id="amount" placeholder="Сума">
+<select id="category">
+<option value="Джерело">Джерело (Картки/Гаманець)</option>
+<option value="Борг">Борг</option>
+<option value="Заощадження">Заощадження</option>
+</select>
+<button onclick="addItem()">Додати</button>
+</div>
 
-        function loadItems() {
-            const list = document.getElementById('list');
-            list.innerHTML = '';
-            const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-            items.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span><b>${item.category}</b>: ${item.title}</span> <span>${item.amount} грн <button onclick="deleteItem(${index})" style="width:auto; display:inline; padding:4px 8px; margin:0 0 0 10px; background:#ff3b30;">X</button></span>`;
-                list.appendChild(li);
-            });
-        }
+<h3>Мої фінанси</h3>
+<ul id="sourcesList"></ul>
 
-        function addItem() {
-            const title = document.getElementById('title').value;
-            const amount = document.getElementById('amount').value;
-            const category = document.getElementById('category').value;
-            
-            if (!title || !amount) return;
+<h3>Борги</h3>
+<ul id="debtsList"></ul>
 
-            const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-            items.push({ title, amount, category });
-            localStorage.setItem('finance_items', JSON.stringify(items));
-            
-            document.getElementById('title').value = '';
-            document.getElementById('amount').value = '';
-            loadItems();
-        }
+<h3>Заощадження</h3>
+<ul id="savingsList"></ul>
 
-        function deleteItem(index) {
-            const items = JSON.parse(localStorage.getItem('finance_items')) || [];
-            items.splice(index, 1);
-            localStorage.setItem('finance_items', JSON.stringify(items));
-            loadItems();
-        }
+<script>
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('sw.js');
+}
 
-        window.onload = loadItems;
-    </script>
+function loadItems() {
+document.getElementById('sourcesList').innerHTML = '';
+document.getElementById('debtsList').innerHTML = '';
+document.getElementById('savingsList').innerHTML = '';
+
+const items = JSON.parse(localStorage.getItem('finance_items')) || [];
+let total = 0;
+
+items.forEach((item, index) => {
+const li = document.createElement('li');
+li.innerHTML = `<span>${item.title}</span> <span>${item.amount} грн <button class="delete-btn" onclick="deleteItem(${index})">X</button></span>`;
+
+let amt = parseFloat(item.amount) || 0;
+
+if (item.category === 'Борг') {
+document.getElementById('debtsList').appendChild(li);
+total -= amt;
+} else if (item.category === 'Заощадження') {
+document.getElementById('savingsList').appendChild(li);
+total += amt;
+} else {
+document.getElementById('sourcesList').appendChild(li);
+total += amt;
+}
+});
+
+document.getElementById('totalBalance').innerText = `Капітал: ${total} грн`;
+}
+
+function addItem() {
+const title = document.getElementById('title').value;
+const amount = document.getElementById('amount').value;
+const category = document.getElementById('category').value;
+
+if (!title || !amount) return;
+
+const items = JSON.parse(localStorage.getItem('finance_items')) || [];
+items.push({ title, amount, category });
+localStorage.setItem('finance_items', JSON.stringify(items));
+
+document.getElementById('title').value = '';
+document.getElementById('amount').value = '';
+loadItems();
+}
+
+function addQuick(amount) {
+const items = JSON.parse(localStorage.getItem('finance_items')) || [];
+items.push({ title: 'Швидка витрата', amount: amount, category: 'Джерело' });
+localStorage.setItem('finance_items', JSON.stringify(items));
+loadItems();
+}
+
+function deleteItem(index) {
+const items = JSON.parse(localStorage.getItem('finance_items')) || [];
+items.splice(index, 1);
+localStorage.setItem('finance_items', JSON.stringify(items));
+loadItems();
+}
+
+window.onload = loadItems;
+</script>
 </body>
 </html>

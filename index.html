@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>О-го-го кишенька</title>
-    <link rel="stylesheet" href="style.css"> <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
@@ -12,47 +13,91 @@
 
     <div class="header">
         <h1 id="pageTitle">Джерела</h1>
+        <button id="themeToggle" class="icon-btn" onclick="toggleTheme()">🌙</button>
     </div>
 
     <div id="sourcesTab" class="container active">
         <div class="card">
             <h2>Створити джерело</h2>
-            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Приват)">
+            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Моно)">
             <input type="text" id="sourceDesc" placeholder="Опис (напр., Зарплатна)">
             <input type="number" id="sourceInitBalance" placeholder="Початковий баланс (грн)">
+            <select id="sourceColor">
+                <option value="black">Чорна картка</option>
+                <option value="blue">Синя картка</option>
+                <option value="green">Зелена картка</option>
+                <option value="wallet">Шкіряний гаманець</option>
+            </select>
             <button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Додати джерело</button>
         </div>
-        <h3 style="margin-left: 5px; color: var(--text-muted);">Мої активи</h3>
+        <h3 class="section-title">Мої активи</h3>
         <div id="sourcesList"></div>
     </div>
 
     <div id="operationsTab" class="container">
         <div class="card">
-            <h2>Нова транзакція</h2>
-            <select id="opSourceSelect"><option value="">-- Виберіть джерело --</option></select>
-            <input type="text" id="opDesc" placeholder="За що? (напр., Продукти, Зарплата)">
-            <input type="number" id="opAmount" placeholder="Сума (грн)">
-            <div class="btn-group">
-                <button class="btn btn-red" onclick="addTransaction('expense', false)">Витрата (-)</button>
-                <button class="btn btn-green" onclick="addTransaction('income', false)">Дохід (+)</button>
+            <div class="segment-control">
+                <button id="segOpExpense" class="active" onclick="setOpType('expense')">Витрата</button>
+                <button id="segOpIncome" onclick="setOpType('income')">Дохід</button>
+                <button id="segOpTransfer" onclick="setOpType('transfer')">Переказ</button>
+            </div>
+            
+            <div id="opForm">
+                <select id="opSourceSelect"><option value="">-- З якого джерела? --</option></select>
+                <select id="opSourceTo" style="display: none;"><option value="">-- На яке джерело? --</option></select>
+                
+                <select id="opCategory">
+                    <option value="Продукти">🛒 Продукти</option>
+                    <option value="Кафе">☕ Кафе / Ресторани</option>
+                    <option value="Транспорт">🚌 Транспорт / Авто</option>
+                    <option value="Одяг">👕 Одяг / Шопінг</option>
+                    <option value="Розваги">🎮 Розваги / Підписки</option>
+                    <option value="Здоров'я">💊 Здоров'я</option>
+                    <option value="Зарплата">💰 Зарплата / Дохід</option>
+                    <option value="Інше">📦 Інше</option>
+                </select>
+                
+                <input type="text" id="opDesc" placeholder="Коментар (необов'язково)">
+                <input type="number" id="opAmount" placeholder="Сума (грн)">
+                <button class="btn btn-blue" id="opSubmitBtn" style="width: 100%;" onclick="submitOperation()">Додати витрату</button>
             </div>
         </div>
     </div>
 
     <div id="debtsTab" class="container">
-        <div class="total-badge text-orange" id="totalDebtsLabel">Нам винні: 0 ₴</div>
-        <div class="card">
-            <h2>Дати в борг</h2>
-            <input type="text" id="debtPerson" placeholder="Кому даємо?">
-            <select id="debtSourceSelect"><option value="">-- Звідки знімаємо гроші? --</option></select>
-            <input type="number" id="debtAmount" placeholder="Сума (грн)">
-            <button class="btn btn-orange" style="width: 100%;" onclick="addDebt()">Видати борг</button>
+        <div class="segment-control" style="margin-bottom: 16px;">
+            <button id="segDebtThey" class="active" onclick="setDebtType('they_owe_me')">Нам винні</button>
+            <button id="segDebtMe" onclick="setDebtType('i_owe')">Ми винні</button>
         </div>
-        <h3 style="margin-left: 5px; color: var(--text-muted);">Активні борги</h3>
+
+        <div class="total-badge text-orange" id="totalDebtsLabel">Сума: 0 ₴</div>
+        
+        <div class="card">
+            <h2 id="debtFormTitle">Дати в борг</h2>
+            <input type="text" id="debtPerson" placeholder="Ім'я людини">
+            <select id="debtSourceSelect"><option value="">-- Джерело грошей --</option></select>
+            <input type="number" id="debtAmount" placeholder="Сума (грн)">
+            <button class="btn btn-orange" id="debtSubmitBtn" style="width: 100%;" onclick="addDebt()">Підтвердити</button>
+        </div>
+        <h3 class="section-title">Активні борги</h3>
         <div id="debtsList"></div>
     </div>
 
     <div id="monitoringTab" class="container">
+        <div class="card budget-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0;">Бюджет на місяць</h3>
+                <button class="icon-btn" style="font-size: 14px; color: var(--blue);" onclick="setBudget()">⚙️ Ліміт</button>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" id="budgetProgress"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                <span id="budgetSpent">Витрачено: 0 ₴</span>
+                <span id="budgetTotal">Ліміт: 0 ₴</span>
+            </div>
+        </div>
+
         <div class="card" style="margin-bottom: 5px; padding: 15px;">
             <div class="filters-grid">
                 <select id="monFilterSource" onchange="renderMonitoring()"><option value="all">Усі джерела</option></select>
@@ -60,12 +105,7 @@
                     <option value="all">Усі операції</option>
                     <option value="income">Тільки Доходи</option>
                     <option value="expense">Тільки Витрати</option>
-                </select>
-                <select id="monSort" onchange="renderMonitoring()">
-                    <option value="dateDesc">За датою (найновіші)</option>
-                    <option value="dateAsc">За датою (найстаріші)</option>
-                    <option value="amountDesc">За сумою (найбільші)</option>
-                    <option value="amountAsc">За сумою (найменші)</option>
+                    <option value="transfer">Тільки Перекази</option>
                 </select>
             </div>
         </div>
@@ -83,20 +123,26 @@
         <div class="nav-item" id="nav-debtsTab" onclick="switchTab('debtsTab', 'Борги')">
             <span class="nav-icon">🤝</span><span>Борги</span>
         </div>
-        <div class="nav-item" id="nav-monitoringTab" onclick="switchTab('monitoringTab', 'Моніторинг')">
-            <span class="nav-icon">📊</span><span>Моніторинг</span>
+        <div class="nav-item" id="nav-monitoringTab" onclick="switchTab('monitoringTab', 'Аналітика')">
+            <span class="nav-icon">📊</span><span>Аналітика</span>
         </div>
     </div>
 
     <div class="modal-overlay" id="editSourceModal" onclick="if(event.target===this) closeEditModal()">
         <div class="modal-sheet">
             <div class="card-header">
-                <h2>Налаштування джерела</h2>
-                <button class="edit-icon" style="color: var(--text-muted); background:none; font-size:20px;" onclick="closeEditModal()">✕</button>
+                <h2>Налаштування</h2>
+                <button class="icon-btn text-muted" onclick="closeEditModal()">✕</button>
             </div>
             <input type="hidden" id="editSourceId">
-            <input type="text" id="editSourceName" placeholder="Назва джерела">
+            <input type="text" id="editSourceName" placeholder="Назва">
             <input type="text" id="editSourceDesc" placeholder="Опис">
+            <select id="editSourceColor">
+                <option value="black">Чорна картка</option>
+                <option value="blue">Синя картка</option>
+                <option value="green">Зелена картка</option>
+                <option value="wallet">Шкіряний гаманець</option>
+            </select>
             <label style="font-size:12px; color:var(--text-muted); margin-left:5px;">Початковий баланс</label>
             <input type="number" id="editSourceBalance" placeholder="Початковий баланс">
             
@@ -108,25 +154,25 @@
     <div class="modal-overlay" id="repayModal" onclick="if(event.target===this) closeRepayModal()">
         <div class="modal-sheet">
             <div class="card-header">
-                <h2>Повернення боргу</h2>
-                <button class="edit-icon" style="color: var(--text-muted); background:none; font-size:20px;" onclick="closeRepayModal()">✕</button>
+                <h2 id="repayModalTitle">Повернення боргу</h2>
+                <button class="icon-btn text-muted" onclick="closeRepayModal()">✕</button>
             </div>
             <p id="repayPersonName" style="margin-top: 0; margin-bottom: 20px; font-weight: 500; color: var(--blue);"></p>
-            <input type="number" id="repayAmount" placeholder="Скільки повертають? (грн)">
-            <select id="repaySourceSelect"><option value="">-- Куди зарахувати гроші? --</option></select>
-            <button class="btn btn-green" style="width: 100%;" onclick="confirmRepay()">Зарахувати</button>
+            <input type="number" id="repayAmount" placeholder="Сума (грн)">
+            <select id="repaySourceSelect"><option value="">-- Виберіть джерело --</option></select>
+            <button class="btn btn-green" style="width: 100%;" onclick="confirmRepay()">Підтвердити</button>
         </div>
     </div>
 
     <script type="importmap">
-  {
-    "imports": {
-      "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-      "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
-    }
-  }
-</script>
-
-<script type="module" src="app.js"></script>
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+        }
+      }
+    </script>
+    
+    <script type="module" src="app.js"></script>
 </body>
 </html>

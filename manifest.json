@@ -1,6 +1,6 @@
 {
-  "short_name": "Гаманець",
-  "name": "Мій Фінансовий Трекер",
+  "short_name": "Кишенька",
+  "name": "О-го-го кишенька",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2489/2489756.png",
@@ -9,8 +9,8 @@
     }
   ],
   "start_url": "index.html",
-  "background_color": "#f5f5f7",
-  "theme_color": "#0071e3",
+  "background_color": "#f2f2f7",
+  "theme_color": "#007aff",
   "display": "standalone",
   "orientation": "portrait"
 }

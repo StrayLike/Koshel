@@ -1,7 +1,80 @@
-let appData = JSON.parse(localStorage.getItem('ogogo_v4')) || { sources: [], transactions: [], debts: [] };
+// Імпортуємо потрібні функції з Firebase SDK
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+
+// Твоя конфігурація Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyB5xv6cpjH_Nbrz_BNfGdNSd5CFquBBnus",
+  authDomain: "ogooo-a9ba3.firebaseapp.com",
+  projectId: "ogooo-a9ba3",
+  storageBucket: "ogooo-a9ba3.firebasestorage.app",
+  messagingSenderId: "602230576066",
+  appId: "1:602230576066:web:1d095a5d535dda5c76bc5b",
+  measurementId: "G-N9XFXYGYP6"
+};
+
+// Ініціалізуємо Firebase та базу даних Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Створюємо один спільний документ у хмарі для твоїх даних
+const dataDocRef = doc(db, "walletData", "user_wallet");
+
+// Локальний стан програми (буде синхронізуватися з хмарою)
+let appData = { sources: [], transactions: [], debts: [] };
 let currentRepayDebtId = null;
 
-function saveData() { localStorage.setItem('ogogo_v4', JSON.stringify(appData)); }
+// Функція збереження даних у ХМАРУ Firebase
+async function saveData() {
+    try {
+        await setDoc(dataDocRef, appData);
+    } catch (error) {
+        console.error("Помилка збереження в Firebase:", error);
+    }
+}
+
+// СЛУХАЧ ХМАРИ (Live Synchronization):
+// Щоразу, коли дані змінюються в базі (з ПК чи з телефона) — екран оновлюється автоматично в реальному часі!
+onSnapshot(dataDocRef, (docSnap) => {
+    if (docSnap.exists()) {
+        appData = docSnap.data();
+        // Перевіряємо, щоб масиви завжди існували
+        if (!appData.sources) appData.sources = [];
+        if (!appData.transactions) appData.transactions = [];
+        if (!appData.debts) appData.debts = [];
+    } else {
+        // Якщо база порожня (перший запуск) — створюємо початкову структуру
+        appData = { sources: [], transactions: [], debts: [] };
+        saveData();
+    }
+    
+    // Перемальовуємо поточний активний екран новими даними з хмари
+    const activeContainer = document.querySelector('.container.active');
+    if (activeContainer) {
+        const tabId = activeContainer.id;
+        updateSelects();
+        if (tabId === 'sourcesTab') renderSources();
+        if (tabId === 'debtsTab') renderDebts();
+        if (tabId === 'monitoringTab') renderMonitoring();
+    } else {
+        updateSelects();
+        renderSources();
+    }
+});
+
+// Робимо функції доступними для HTML-кнопок (оскільки скрипт став type="module")
+window.switchTab = switchTab;
+window.addSource = addSource;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveEditedSource = saveEditedSource;
+window.deleteSource = deleteSource;
+window.addTransaction = addTransaction;
+window.addDebt = addDebt;
+window.openRepayModal = openRepayModal;
+window.closeRepayModal = closeRepayModal;
+window.confirmRepay = confirmRepay;
+window.renderMonitoring = renderMonitoring;
 
 function switchTab(tabId, title) {
     document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
@@ -46,11 +119,12 @@ function addSource() {
     document.getElementById('sourceDesc').value = '';
     document.getElementById('sourceInitBalance').value = '';
     
-    saveData(); renderSources(); updateSelects();
+    saveData();
 }
 
 function renderSources() {
     const list = document.getElementById('sourcesList');
+    if (!list) return;
     list.innerHTML = '';
     if (appData.sources.length === 0) {
         list.innerHTML = '<div class="empty-state">У вас ще немає доданих джерел.</div>'; return;
@@ -73,7 +147,7 @@ function renderSources() {
     });
 }
 
-/* --- РЕДАГУВАННЯ / ВИДАЛЕННЯ --- */
+/* --- РЕДАГУВАННЯ / ВИДАЛЕННЯ ДЖЕРЕЛ --- */
 function openEditModal(id) {
     const src = appData.sources.find(s => s.id === id);
     if(!src) return;
@@ -95,14 +169,16 @@ function saveEditedSource() {
     src.description = document.getElementById('editSourceDesc').value.trim();
     src.initialBalance = parseFloat(document.getElementById('editSourceBalance').value) || 0;
 
-    saveData(); closeEditModal(); renderSources(); updateSelects();
+    closeEditModal();
+    saveData();
 }
 
 function deleteSource() {
     if(!confirm('Точно видалити це джерело? Історія операцій за ним залишиться, але саме джерело зникне.')) return;
     const id = document.getElementById('editSourceId').value;
     appData.sources = appData.sources.filter(s => s.id !== id);
-    saveData(); closeEditModal(); renderSources(); updateSelects();
+    closeEditModal();
+    saveData();
 }
 
 function updateSelects() {
@@ -110,8 +186,10 @@ function updateSelects() {
     const debtSelect = document.getElementById('debtSourceSelect');
     const repaySelect = document.getElementById('repaySourceSelect');
     const monSelect = document.getElementById('monFilterSource');
-    const monCurrentVal = monSelect.value;
     
+    if(!opSelect || !debtSelect || !repaySelect || !monSelect) return;
+    
+    const monCurrentVal = monSelect.value;
     const opts = '<option value="">-- Виберіть джерело --</option>' + appData.sources.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     
     opSelect.innerHTML = opts; debtSelect.innerHTML = opts; repaySelect.innerHTML = opts;
@@ -129,12 +207,13 @@ function addTransaction(type, isDebtInternal = false, forceSourceId = null, forc
         if(!isDebtInternal) alert('Заповніть всі поля коректно!'); return;
     }
 
-    appData.transactions.push({ id: Date.now().toString(), sourceId, description: desc, amount, type, date: new Date().toISOString() });
+    appData.transactions.push({ id: Date.now().toString() + Math.random().toString(), sourceId, description: desc, amount, type, date: new Date().toISOString() });
 
     if(!isDebtInternal) {
         document.getElementById('opDesc').value = ''; document.getElementById('opAmount').value = '';
         document.getElementById('opSourceSelect').value = '';
-        saveData(); alert('Транзакцію успішно додано!');
+        saveData();
+        alert('Транзакцію успішно додано!');
     }
 }
 
@@ -154,11 +233,14 @@ function addDebt() {
 
     document.getElementById('debtPerson').value = ''; document.getElementById('debtAmount').value = '';
     document.getElementById('debtSourceSelect').value = '';
-    saveData(); renderDebts();
+    saveData();
 }
 
 function renderDebts() {
     const list = document.getElementById('debtsList');
+    const totalLabel = document.getElementById('totalDebtsLabel');
+    if (!list || !totalLabel) return;
+    
     let totalOwed = 0; list.innerHTML = '';
 
     if (appData.debts.length === 0) {
@@ -179,7 +261,7 @@ function renderDebts() {
                 </div>`;
         });
     }
-    document.getElementById('totalDebtsLabel').innerText = `Нам винні: ${totalOwed} ₴`;
+    totalLabel.innerText = `Нам винні: ${totalOwed} ₴`;
 }
 
 function openRepayModal(debtId) {
@@ -209,7 +291,8 @@ function confirmRepay() {
 
     if (debt.remainingAmount <= 0) appData.debts.splice(debtIndex, 1);
 
-    saveData(); closeRepayModal(); renderDebts();
+    closeRepayModal();
+    saveData();
 }
 
 /* --- МОНІТОРИНГ --- */
@@ -218,6 +301,9 @@ function renderMonitoring() {
     const filterType = document.getElementById('monFilterType').value;
     const sortMode = document.getElementById('monSort').value;
     const list = document.getElementById('monitoringList');
+    const balanceLabel = document.getElementById('monTotalBalance');
+    
+    if(!list || !balanceLabel) return;
     
     let filteredTxs = [...appData.transactions];
     if (filterSource !== 'all') filteredTxs = filteredTxs.filter(t => t.sourceId === filterSource);
@@ -227,7 +313,7 @@ function renderMonitoring() {
     if (filterSource === 'all') appData.sources.forEach(src => { displayBalance += getSourceBalance(src.id); });
     else displayBalance = getSourceBalance(filterSource);
 
-    document.getElementById('monTotalBalance').innerText = `${displayBalance} ₴`;
+    balanceLabel.innerText = `${displayBalance} ₴`;
     list.innerHTML = '';
 
     if (filteredTxs.length === 0) { list.innerHTML = '<div class="empty-state">Операцій не знайдено.</div>'; return; }
@@ -254,12 +340,3 @@ function renderMonitoring() {
             </div>`;
     });
 }
-
-// Запуск при завантаженні сторінки
-window.onload = () => { 
-    updateSelects(); 
-    renderSources(); 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
-};

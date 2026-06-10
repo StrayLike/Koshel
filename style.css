@@ -32,6 +32,7 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+/* ШАПКА */
 .header {
     position: sticky; top: 0; z-index: 100;
     background: var(--glass-bg);
@@ -42,6 +43,7 @@ body {
 .header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; flex: 1; text-align: center; margin-left: 24px;}
 .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-main); padding: 0; }
 
+/* МОБІЛЬНЕ МЕНЮ (За замовчуванням) */
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -53,6 +55,7 @@ body {
 .nav-item.active { color: var(--blue); }
 .nav-icon { font-size: 24px; margin-bottom: 4px; }
 
+/* КОНТЕЙНЕРИ ТА КАРТКИ */
 .container { padding: 16px; display: none; }
 .container.active { display: block; animation: fadeUp 0.3s ease-out; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -60,8 +63,9 @@ body {
 .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.03); transition: 0.3s; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .card h2 { margin: 0; font-size: 20px; font-weight: 600; }
-.section-title { margin-left: 5px; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+.section-title { margin-left: 5px; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: block;}
 
+/* ЕЛЕМЕНТИ ВВОДУ */
 input, select {
     width: 100%; padding: 14px 16px; margin-bottom: 12px;
     border: 1px solid var(--border); border-radius: 12px; font-size: 16px;
@@ -76,6 +80,7 @@ input:focus, select:focus { border-color: var(--blue); }
 }
 .segment-control button.active { background: var(--card-bg); box-shadow: 0 1px 4px rgba(0,0,0,0.1); color: var(--text-main); }
 
+.btn-group { display: flex; gap: 12px; }
 .btn { padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: white; cursor: pointer; text-align: center; transition: 0.1s; }
 .btn:active { transform: scale(0.97); }
 .btn-blue { background-color: var(--blue); }
@@ -103,7 +108,7 @@ input:focus, select:focus { border-color: var(--blue); }
 .source-balance { font-weight: 800; font-size: 22px; text-align: right; }
 .source-edit { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-top: 8px;}
 
-/* Списки */
+/* СПИСКИ (Транзакції/Борги) */
 .list-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: 0.3s;}
 .list-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .list-title { font-weight: 600; font-size: 16px; }
@@ -111,20 +116,94 @@ input:focus, select:focus { border-color: var(--blue); }
 .list-date { font-size: 12px; color: var(--text-muted); }
 .right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .list-amount { font-weight: 700; font-size: 17px; }
+.edit-icon { background: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 14px; border: none; color: var(--blue); font-weight: bold; cursor: pointer; }
+
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-blue { color: var(--blue); } .text-orange { color: var(--orange); } .text-purple { color: var(--purple); }
 
 .empty-state { text-align: center; color: var(--text-muted); padding: 30px 20px; font-style: italic; }
 .total-badge { text-align: center; font-size: 32px; font-weight: 800; padding: 10px 0 25px 0; letter-spacing: -1px; }
 
-/* Бюджет Прогрес Бар */
+/* БЮДЖЕТ ПРОГРЕС БАР */
 .budget-card { padding: 16px; }
 .progress-bg { width: 100%; height: 12px; background: var(--segment-bg); border-radius: 10px; overflow: hidden; margin-top: 8px;}
 .progress-fill { height: 100%; background: var(--blue); width: 0%; transition: width 0.5s ease-out, background-color 0.3s; }
 .progress-fill.danger { background: var(--red); }
 
-/* Модалки */
+/* МОДАЛКИ (Мобільні) */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; display: flex; align-items: flex-end; }
 .modal-overlay.active { opacity: 1; visibility: visible; }
 .modal-sheet { background: var(--card-bg); width: 100%; border-radius: 24px 24px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)) 20px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box; }
 .modal-overlay.active .modal-sheet { transform: translateY(0); }
 .filters-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+/* =======================================================
+   💻 АДАПТИВНИЙ ДИЗАЙН ДЛЯ ПК ТА ПЛАНШЕТІВ (ПРО-РЕЖИМ)
+   ======================================================= */
+@media (min-width: 768px) {
+    body {
+        padding-bottom: 0;
+        padding-left: 260px; /* Місце під бокову панель */
+        background-color: var(--bg);
+    }
+
+    /* МЕНЮ ПЕРЕТВОРЮЄТЬСЯ НА SIDEBAR */
+    .bottom-nav {
+        position: fixed; top: 0; left: 0;
+        width: 260px; height: 100vh;
+        flex-direction: column; justify-content: flex-start;
+        padding: 40px 20px;
+        border-top: none; border-right: 1px solid var(--border);
+        box-sizing: border-box; gap: 10px;
+    }
+    
+    .nav-item {
+        flex-direction: row; width: 100%;
+        padding: 14px 20px; border-radius: 12px;
+        font-size: 16px; font-weight: 600;
+        box-sizing: border-box;
+    }
+    
+    .nav-icon { margin-bottom: 0; margin-right: 15px; font-size: 20px; }
+    
+    .nav-item.active { background: var(--blue); color: white; }
+    .nav-item.active .nav-icon { filter: brightness(0) invert(1); } /* Робить іконку білою, якщо це emoji */
+
+    /* ШАПКА ПК */
+    .header {
+        padding: 40px; background: transparent;
+        border-bottom: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+    }
+    .header h1 { text-align: left; font-size: 34px; margin-left: 0; }
+    .icon-btn { background: var(--card-bg); padding: 10px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+    /* КОНТЕНТ ПО ЦЕНТРУ */
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 40px 40px 40px;
+    }
+
+    /* СІТКА ДЛЯ КАРТОК (DASHBOARD) */
+    #sourcesList, #goalsList {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    .source-card { margin-bottom: 0; }
+
+    /* ФОРМИ ТА КАРТКИ В ОПЕРАЦІЯХ (Щоб не були на весь екран) */
+    #opForm, .budget-card, .filters-grid {
+        max-width: 600px;
+    }
+    
+    .filters-grid { grid-template-columns: 1fr 1fr; } /* Фільтри в один рядок */
+
+    /* МОДАЛКИ ПО ЦЕНТРУ ЕКРАНУ */
+    .modal-overlay { align-items: center; justify-content: center; }
+    .modal-sheet {
+        width: 480px; height: auto; max-height: 90vh; overflow-y: auto;
+        border-radius: 24px; padding-bottom: 24px;
+        transform: scale(0.9); opacity: 0;
+    }
+    .modal-overlay.active .modal-sheet { transform: scale(1); opacity: 1; }
+}

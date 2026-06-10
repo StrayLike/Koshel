@@ -8,6 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -17,21 +18,16 @@
     </div>
 
     <div id="sourcesTab" class="container active">
-        <div class="card">
-            <h2>Створити джерело</h2>
-            <input type="text" id="sourceName" placeholder="Назва (напр., Картка Моно)">
-            <input type="text" id="sourceDesc" placeholder="Опис (напр., Зарплатна)">
-            <input type="number" id="sourceInitBalance" placeholder="Початковий баланс (грн)">
-            <select id="sourceColor">
-                <option value="black">Чорна картка</option>
-                <option value="blue">Синя картка</option>
-                <option value="green">Зелена картка</option>
-                <option value="wallet">Шкіряний гаманець</option>
-            </select>
-            <button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Додати джерело</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <button class="btn btn-blue" style="flex: 1; padding: 10px; font-size: 14px;" onclick="document.getElementById('addSourceModal').classList.add('active')">💳 + Картка</button>
+            <button class="btn btn-purple" style="flex: 1; padding: 10px; font-size: 14px;" onclick="document.getElementById('addGoalModal').classList.add('active')">🎯 + Скарбничка</button>
         </div>
+        
         <h3 class="section-title">Мої активи</h3>
         <div id="sourcesList"></div>
+
+        <h3 class="section-title" style="margin-top: 20px;">Мої цілі</h3>
+        <div id="goalsList"></div>
     </div>
 
     <div id="operationsTab" class="container">
@@ -39,7 +35,7 @@
             <div class="segment-control">
                 <button id="segOpExpense" class="active" onclick="setOpType('expense')">Витрата</button>
                 <button id="segOpIncome" onclick="setOpType('income')">Дохід</button>
-                <button id="segOpTransfer" onclick="setOpType('transfer')">Переказ</button>
+                <button id="segOpTransfer" onclick="setOpType('transfer')">Переказ / Копилка</button>
             </div>
             
             <div id="opForm">
@@ -49,7 +45,7 @@
                 <select id="opCategory">
                     <option value="Продукти">🛒 Продукти</option>
                     <option value="Кафе">☕ Кафе / Ресторани</option>
-                    <option value="Транспорт">🚌 Транспорт / Авто</option>
+                    <option value="Транспорт">🚌 Транспорт</option>
                     <option value="Одяг">👕 Одяг / Шопінг</option>
                     <option value="Розваги">🎮 Розваги / Підписки</option>
                     <option value="Здоров'я">💊 Здоров'я</option>
@@ -58,8 +54,15 @@
                 </select>
                 
                 <input type="text" id="opDesc" placeholder="Коментар (необов'язково)">
-                <input type="number" id="opAmount" placeholder="Сума (грн)">
-                <button class="btn btn-blue" id="opSubmitBtn" style="width: 100%;" onclick="submitOperation()">Додати витрату</button>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <input type="number" id="opAmount" placeholder="Сума" style="margin-bottom: 0;">
+                    <input type="file" id="ocrInput" accept="image/*" capture="environment" style="display: none;" onchange="processReceipt(event)">
+                    <button class="btn btn-glass" style="color: var(--blue); border: 1px solid var(--blue); padding: 0 20px;" onclick="document.getElementById('ocrInput').click()" id="scanBtn">📸 Чек</button>
+                </div>
+                
+                <button class="btn btn-blue" id="opSubmitBtn" style="width: 100%; margin-bottom: 12px;" onclick="submitOperation()">Додати витрату</button>
+                <button class="btn" style="width: 100%; background: var(--segment-bg); color: var(--text-main);" onclick="openSubsModal()">🔄 Мої регулярні платежі</button>
             </div>
         </div>
     </div>
@@ -69,14 +72,12 @@
             <button id="segDebtThey" class="active" onclick="setDebtType('they_owe_me')">Нам винні</button>
             <button id="segDebtMe" onclick="setDebtType('i_owe')">Ми винні</button>
         </div>
-
         <div class="total-badge text-orange" id="totalDebtsLabel">Сума: 0 ₴</div>
-        
         <div class="card">
             <h2 id="debtFormTitle">Дати в борг</h2>
             <input type="text" id="debtPerson" placeholder="Ім'я людини">
             <select id="debtSourceSelect"><option value="">-- Джерело грошей --</option></select>
-            <input type="number" id="debtAmount" placeholder="Сума (грн)">
+            <input type="number" id="debtAmount" placeholder="Сума">
             <button class="btn btn-orange" id="debtSubmitBtn" style="width: 100%;" onclick="addDebt()">Підтвердити</button>
         </div>
         <h3 class="section-title">Активні борги</h3>
@@ -98,6 +99,16 @@
             </div>
         </div>
 
+        <div class="card" style="background: linear-gradient(135deg, rgba(175, 82, 222, 0.1), rgba(0, 122, 255, 0.1)); border: 1px solid rgba(175, 82, 222, 0.3);">
+            <h3 style="margin-top: 0; margin-bottom: 8px; color: var(--purple);">✨ Розумний прогноз</h3>
+            <p id="aiForecastText" style="font-size: 14px; line-height: 1.5; margin: 0; color: var(--text-main);">Аналізую ваші витрати...</p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 12px;">📊 Витрати за категоріями</h3>
+            <div id="categoriesReportList" style="font-size: 14px; display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
         <div class="card" style="margin-bottom: 5px; padding: 15px;">
             <div class="filters-grid">
                 <select id="monFilterSource" onchange="renderMonitoring()"><option value="all">Усі джерела</option></select>
@@ -109,12 +120,15 @@
                 </select>
             </div>
         </div>
+        
         <div class="total-badge text-blue" id="monTotalBalance">0 ₴</div>
+        <div style="text-align: center; font-size: 11px; color: var(--text-muted); margin-top: -20px; margin-bottom: 20px;">*Загальний баланс за актуальним курсом НБУ</div>
+        
+        <h3 class="section-title">Історія операцій</h3>
         <div id="monitoringList" style="margin-bottom: 16px;"></div>
 
         <div class="card">
-            <h3 style="margin-top: 0; margin-bottom: 12px;">Резервна копія (Бек-ап)</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Зберігайте файл перед оновленням програми, щоб не втратити дані.</p>
+            <h3 style="margin-top: 0; margin-bottom: 12px;">Резервна копія</h3>
             <div class="btn-group">
                 <button class="btn btn-blue" onclick="exportData()">⬇️ Скачати</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
@@ -138,42 +152,15 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="editSourceModal" onclick="if(event.target===this) closeEditModal()">
-        <div class="modal-sheet">
-            <div class="card-header">
-                <h2>Налаштування</h2>
-                <button class="icon-btn text-muted" onclick="closeEditModal()">✕</button>
-            </div>
-            <input type="hidden" id="editSourceId">
-            <input type="text" id="editSourceName" placeholder="Назва">
-            <input type="text" id="editSourceDesc" placeholder="Опис">
-            <select id="editSourceColor">
-                <option value="black">Чорна картка</option>
-                <option value="blue">Синя картка</option>
-                <option value="green">Зелена картка</option>
-                <option value="wallet">Шкіряний гаманець</option>
-            </select>
-            <label style="font-size:12px; color:var(--text-muted); margin-left:5px;">Початковий баланс</label>
-            <input type="number" id="editSourceBalance" placeholder="Початковий баланс">
-            
-            <button class="btn btn-blue" style="width: 100%; margin-bottom: 12px;" onclick="saveEditedSource()">Зберегти зміни</button>
-            <button class="btn btn-outline-red" style="width: 100%;" onclick="deleteSource()">🗑 Видалити джерело</button>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="repayModal" onclick="if(event.target===this) closeRepayModal()">
-        <div class="modal-sheet">
-            <div class="card-header">
-                <h2 id="repayModalTitle">Повернення боргу</h2>
-                <button class="icon-btn text-muted" onclick="closeRepayModal()">✕</button>
-            </div>
-            <p id="repayPersonName" style="margin-top: 0; margin-bottom: 20px; font-weight: 500; color: var(--blue);"></p>
-            <input type="number" id="repayAmount" placeholder="Сума (грн)">
-            <select id="repaySourceSelect"><option value="">-- Виберіть джерело --</option></select>
-            <button class="btn btn-green" style="width: 100%;" onclick="confirmRepay()">Підтвердити</button>
-        </div>
-    </div>
+    <div class="modal-overlay" id="addSourceModal" onclick="if(event.target===this) this.classList.remove('active')"><div class="modal-sheet"><div class="card-header"><h2>Нова картка</h2><button class="icon-btn" onclick="document.getElementById('addSourceModal').classList.remove('active')">✕</button></div><input type="text" id="sourceName" placeholder="Назва"><input type="text" id="sourceDesc" placeholder="Опис"><input type="number" id="sourceInitBalance" placeholder="Початковий баланс"><div style="display: flex; gap: 10px;"><select id="sourceCurrency" style="flex: 1;"><option value="UAH">₴ Гривня</option><option value="USD">$ Долар</option><option value="EUR">€ Євро</option></select><select id="sourceColor" style="flex: 1;"><option value="black">Чорна</option><option value="blue">Синя</option><option value="green">Зелена</option><option value="wallet">Гаманець</option></select></div><button class="btn btn-blue" style="width: 100%;" onclick="addSource()">Створити</button></div></div>
+    <div class="modal-overlay" id="addGoalModal" onclick="if(event.target===this) this.classList.remove('active')"><div class="modal-sheet"><div class="card-header"><h2>Нова ціль</h2><button class="icon-btn" onclick="document.getElementById('addGoalModal').classList.remove('active')">✕</button></div><input type="text" id="goalName" placeholder="На що збираємо?"><input type="text" id="goalDesc" placeholder="Опис"><input type="number" id="goalTarget" placeholder="Сума (₴)"><button class="btn btn-purple" style="width: 100%;" onclick="addGoal()">Створити ціль</button></div></div>
+    <div class="modal-overlay" id="editSourceModal" onclick="if(event.target===this) closeEditModal()"><div class="modal-sheet"><div class="card-header"><h2>Налаштування</h2><button class="icon-btn" onclick="closeEditModal()">✕</button></div><input type="hidden" id="editSourceId"><input type="text" id="editSourceName" placeholder="Назва"><input type="text" id="editSourceDesc" placeholder="Опис"><div style="display: flex; gap: 10px;"><select id="editSourceCurrency" style="flex: 1;"><option value="UAH">₴ Гривня</option><option value="USD">$ Долар</option><option value="EUR">€ Євро</option></select><select id="editSourceColor" style="flex: 1;"><option value="black">Чорна</option><option value="blue">Синя</option><option value="green">Зелена</option><option value="wallet">Гаманець</option><option value="goal" disabled>Скарбничка</option></select></div><label style="font-size:12px; color:var(--text-muted); margin-left:5px;" id="editTargetLabel">Баланс / Ціль</label><input type="number" id="editSourceBalance" placeholder="Сума"><button class="btn btn-blue" style="width: 100%; margin-bottom: 12px;" onclick="saveEditedSource()">Зберегти</button><button class="btn btn-outline-red" style="width: 100%;" onclick="deleteSource()">🗑 Видалити</button></div></div>
+    <div class="modal-overlay" id="editTxModal" onclick="if(event.target===this) closeEditTxModal()"><div class="modal-sheet"><div class="card-header"><h2>Редагувати</h2><button class="icon-btn" onclick="closeEditTxModal()">✕</button></div><input type="hidden" id="editTxId"><select id="editTxSourceSelect"></select><select id="editTxCategory"><option value="Продукти">🛒 Продукти</option><option value="Кафе">☕ Кафе / Ресторани</option><option value="Транспорт">🚌 Транспорт</option><option value="Одяг">👕 Одяг / Шопінг</option><option value="Розваги">🎮 Розваги</option><option value="Здоров'я">💊 Здоров'я</option><option value="Зарплата">💰 Зарплата</option><option value="Інше">📦 Інше</option></select><input type="text" id="editTxDesc" placeholder="Коментар"><input type="number" id="editTxAmount" placeholder="Сума"><button class="btn btn-blue" style="width: 100%; margin-bottom: 12px;" onclick="saveEditedTx()">Зберегти</button><button class="btn btn-outline-red" style="width: 100%;" onclick="deleteTx()">🗑 Видалити</button></div></div>
+    <div class="modal-overlay" id="repayModal" onclick="if(event.target===this) closeRepayModal()"><div class="modal-sheet"><div class="card-header"><h2 id="repayModalTitle">Борг</h2><button class="icon-btn" onclick="closeRepayModal()">✕</button></div><p id="repayPersonName" style="margin-bottom: 20px; font-weight: 500;"></p><input type="hidden" id="repayDebtId"><input type="number" id="repayAmount" placeholder="Сума (грн)"><select id="repaySourceSelect"></select><button class="btn btn-green" style="width: 100%; margin-bottom: 12px;" onclick="confirmRepay()">Погасити</button><button class="btn btn-outline-red" style="width: 100%;" onclick="deleteDebtEntirely()">🗑 Анулювати</button></div></div>
+    <div class="modal-overlay" id="subsListModal" onclick="if(event.target===this) this.classList.remove('active')"><div class="modal-sheet" style="height: 80vh; display: flex; flex-direction: column;"><div class="card-header"><h2>Регулярні платежі</h2><button class="icon-btn" onclick="document.getElementById('subsListModal').classList.remove('active')">✕</button></div><div id="subsList" style="flex: 1; overflow-y: auto; margin-bottom: 16px;"></div><button class="btn btn-blue" style="width: 100%;" onclick="openAddSubModal()">+ Додати</button></div></div>
+    <div class="modal-overlay" id="addSubModal" onclick="if(event.target===this) this.classList.remove('active')"><div class="modal-sheet"><div class="card-header"><h2>Новий автоплатіж</h2><button class="icon-btn" onclick="document.getElementById('addSubModal').classList.remove('active')">✕</button></div><input type="text" id="subName" placeholder="Назва (напр., Spotify)"><select id="subSourceSelect"></select><select id="subCategory"><option value="Розваги">Розваги / Підписки</option><option value="Транспорт">Транспорт</option><option value="Інше">Інше</option></select><input type="number" id="subAmount" placeholder="Сума"><input type="number" id="subDay" placeholder="День (1-31)" min="1" max="31"><button class="btn btn-purple" style="width: 100%;" onclick="addSubscription()">Створити</button></div></div>
 
     <script src="app.js"></script>
+    <script src="scanner.js"></script>
 </body>
 </html>

@@ -1,87 +1,62 @@
-// Імпортуємо потрібні функції з Firebase SDK
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, onSnapshot, setDoc } from "firebase/firestore";
-
-// Конфігурація Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyB5xv6cpjH_Nbrz_BNfGdNSd5CFquBBnus",
-    authDomain: "ogooo-a9ba3.firebaseapp.com",
-    projectId: "ogooo-a9ba3",
-    storageBucket: "ogooo-a9ba3.firebasestorage.app",
-    messagingSenderId: "602230576066",
-    appId: "1:602230576066:web:1d095a5d535dda5c76bc5b",
-    measurementId: "G-N9XFXYGYP6"
+// Завантаження локальних даних
+let appData = JSON.parse(localStorage.getItem('ogogo_pro')) || { 
+    sources: [], transactions: [], debts: [], settings: { budget: 0, isDark: false } 
 };
+if (!appData.settings) appData.settings = { budget: 0, isDark: false };
 
-// Ініціалізуємо Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const dataDocRef = doc(db, "walletData", "user_wallet");
-
-// Локальний стан програми
-let appData = { sources: [], transactions: [], debts: [], settings: { budget: 0, isDark: false } };
-
-let currentOpType = 'expense'; 
-let currentDebtType = 'they_owe_me'; 
+let currentOpType = 'expense';
+let currentDebtType = 'they_owe_me';
 let currentRepayDebtId = null;
 
-// Функція збереження в хмару
-async function saveData() {
-    try {
-        await setDoc(dataDocRef, appData);
-    } catch (error) {
-        console.error("Помилка збереження в Firebase:", error);
-    }
+function saveData() { 
+    localStorage.setItem('ogogo_pro', JSON.stringify(appData)); 
 }
 
-// СЛУХАЧ ХМАРИ (Синхронізація в реальному часі)
-onSnapshot(dataDocRef, (docSnap) => {
-    if (docSnap.exists()) {
-        appData = docSnap.data();
-        if (!appData.sources) appData.sources = [];
-        if (!appData.transactions) appData.transactions = [];
-        if (!appData.debts) appData.debts = [];
-        if (!appData.settings) appData.settings = { budget: 0, isDark: false };
-    } else {
-        appData = { sources: [], transactions: [], debts: [], settings: { budget: 0, isDark: false } };
-        saveData();
-    }
+/* --- ЕКСПОРТ ТА ІМПОРТ ДАНИХ (БЕК-АП) --- */
+function exportData() {
+    const dataStr = JSON.stringify(appData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     
-    applyTheme();
+    // Формуємо гарну назву файлу з поточною датою
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.download = `ogogo_backup_${dateStr}.json`;
     
-    // Оновлюємо активний екран
-    const activeContainer = document.querySelector('.container.active');
-    if (activeContainer) {
-        const tabId = activeContainer.id;
-        updateSelects();
-        if (tabId === 'sourcesTab') renderSources();
-        if (tabId === 'debtsTab') renderDebts();
-        if (tabId === 'monitoringTab') renderMonitoring();
-    } else {
-        updateSelects();
-        renderSources();
-    }
-});
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
-// Експортуємо функції для HTML кнопок
-window.toggleTheme = toggleTheme;
-window.switchTab = switchTab;
-window.addSource = addSource;
-window.openEditModal = openEditModal;
-window.closeEditModal = closeEditModal;
-window.saveEditedSource = saveEditedSource;
-window.deleteSource = deleteSource;
-window.setOpType = setOpType;
-window.submitOperation = submitOperation;
-window.setDebtType = setDebtType;
-window.addDebt = addDebt;
-window.openRepayModal = openRepayModal;
-window.closeRepayModal = closeRepayModal;
-window.confirmRepay = confirmRepay;
-window.setBudget = setBudget;
-window.renderMonitoring = renderMonitoring;
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            // Перевіряємо, чи це дійсно наш файл
+            if (importedData.sources && importedData.transactions) {
+                appData = importedData;
+                saveData();
+                alert('Ура! Дані успішно відновлено.');
+                location.reload(); // Перезавантажуємо сторінку, щоб застосувати дані
+            } else {
+                alert('Це не схоже на файл бек-апу Кишеньки!');
+            }
+        } catch (err) {
+            alert('Помилка читання файлу!');
+        }
+    };
+    reader.readAsText(file);
+    // Очищаємо інпут, щоб можна було завантажити той самий файл ще раз
+    event.target.value = ''; 
+}
 
-// --- ТЕМНА ТЕМА ---
+// Темна тема
 function applyTheme() {
     if (appData.settings.isDark) {
         document.body.classList.add('dark-mode');
@@ -91,13 +66,12 @@ function applyTheme() {
         document.getElementById('themeToggle').innerText = '🌙';
     }
 }
-
 function toggleTheme() {
     appData.settings.isDark = !appData.settings.isDark;
     applyTheme(); saveData();
 }
 
-// --- НАВІГАЦІЯ ---
+// Навігація
 function switchTab(tabId, title) {
     document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -117,7 +91,7 @@ function formatDate(isoString) {
     return d.toLocaleDateString('uk-UA') + ' ' + d.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
 }
 
-// --- ДЖЕРЕЛА ---
+/* --- ДЖЕРЕЛА --- */
 function getSourceBalance(sourceId) {
     const source = appData.sources.find(s => s.id === sourceId);
     if (!source) return 0;
@@ -144,12 +118,11 @@ function addSource() {
 
     appData.sources.push({ id: Date.now().toString(), name, description: desc, initialBalance: initBal, theme: color });
     document.getElementById('sourceName').value = ''; document.getElementById('sourceDesc').value = ''; document.getElementById('sourceInitBalance').value = '';
-    saveData();
+    saveData(); renderSources(); updateSelects();
 }
 
 function renderSources() {
     const list = document.getElementById('sourcesList');
-    if (!list) return;
     list.innerHTML = '';
     if (appData.sources.length === 0) { list.innerHTML = '<div class="empty-state">Додайте свою першу картку або гаманець.</div>'; return; }
 
@@ -178,9 +151,7 @@ function openEditModal(id) {
     document.getElementById('editSourceColor').value = src.theme || 'black';
     document.getElementById('editSourceModal').classList.add('active');
 }
-
 function closeEditModal() { document.getElementById('editSourceModal').classList.remove('active'); }
-
 function saveEditedSource() {
     const id = document.getElementById('editSourceId').value;
     const src = appData.sources.find(s => s.id === id);
@@ -189,14 +160,13 @@ function saveEditedSource() {
     src.description = document.getElementById('editSourceDesc').value.trim();
     src.initialBalance = parseFloat(document.getElementById('editSourceBalance').value) || 0;
     src.theme = document.getElementById('editSourceColor').value;
-    closeEditModal(); saveData();
+    saveData(); closeEditModal(); renderSources(); updateSelects();
 }
-
 function deleteSource() {
     if(!confirm('Видалити джерело? Історія операцій залишиться.')) return;
     const id = document.getElementById('editSourceId').value;
     appData.sources = appData.sources.filter(s => s.id !== id);
-    closeEditModal(); saveData();
+    saveData(); closeEditModal(); renderSources(); updateSelects();
 }
 
 function updateSelects() {
@@ -213,7 +183,7 @@ function updateSelects() {
     }
 }
 
-// --- ОПЕРАЦІЇ ТА ПЕРЕКАЗИ ---
+/* --- ОПЕРАЦІЇ ТА ПЕРЕКАЗИ --- */
 function setOpType(type) {
     currentOpType = type;
     document.getElementById('segOpExpense').classList.toggle('active', type === 'expense');
@@ -253,7 +223,7 @@ function submitOperation() {
     saveData(); alert('Успішно!');
 }
 
-// --- БОРГИ ---
+/* --- БОРГИ (Ми винні / Нам винні) --- */
 function setDebtType(type) {
     currentDebtType = type;
     document.getElementById('segDebtThey').classList.toggle('active', type === 'they_owe_me');
@@ -281,14 +251,11 @@ function addDebt() {
 
     appData.debts.push({ id: Date.now().toString() + "D", person, remainingAmount: amount, type: currentDebtType, date: new Date().toISOString() });
     document.getElementById('debtPerson').value = ''; document.getElementById('debtAmount').value = ''; document.getElementById('debtSourceSelect').value = '';
-    saveData();
+    saveData(); renderDebts();
 }
 
 function renderDebts() {
     const list = document.getElementById('debtsList');
-    const totalLabel = document.getElementById('totalDebtsLabel');
-    if (!list || !totalLabel) return;
-    
     let totalOwed = 0; list.innerHTML = '';
 
     const filteredDebts = appData.debts.filter(d => d.type === currentDebtType);
@@ -311,8 +278,8 @@ function renderDebts() {
                 </div>`;
         });
     }
-    totalLabel.innerText = `Сума: ${totalOwed} ₴`;
-    totalLabel.className = currentDebtType === 'they_owe_me' ? 'total-badge text-orange' : 'total-badge text-red';
+    document.getElementById('totalDebtsLabel').innerText = `Сума: ${totalOwed} ₴`;
+    document.getElementById('totalDebtsLabel').className = currentDebtType === 'they_owe_me' ? 'total-badge text-orange' : 'total-badge text-red';
 }
 
 function openRepayModal(debtId) {
@@ -339,7 +306,7 @@ function confirmRepay() {
     if (amount > debt.remainingAmount) return alert('Сума більша за борг!');
 
     if (debt.type === 'they_owe_me') { 
-        appData.transactions.push({ id: Date.now().toString(), sourceId, category: 'Борг', description: `Повернення від: ${debt.person}`, amount, type: 'income', date: new Date().toISOString() });
+        appData.transactions.push({ id: Date.now().toString(), sourceId, category: 'Борг', description: `Повернення боргу від: ${debt.person}`, amount, type: 'income', date: new Date().toISOString() });
     } else { 
         if (amount > getSourceBalance(sourceId)) if(!confirm('Недостатньо коштів! Продовжити?')) return;
         appData.transactions.push({ id: Date.now().toString(), sourceId, category: 'Борг', description: `Я віддав борг для: ${debt.person}`, amount, type: 'expense', date: new Date().toISOString() });
@@ -347,15 +314,15 @@ function confirmRepay() {
 
     debt.remainingAmount -= amount;
     if (debt.remainingAmount <= 0) appData.debts.splice(debtIndex, 1);
-    closeRepayModal(); saveData();
+    saveData(); closeRepayModal(); renderDebts();
 }
 
-// --- АНАЛІТИКА ТА БЮДЖЕТ ---
+/* --- АНАЛІТИКА ТА БЮДЖЕТ --- */
 function setBudget() {
     const limit = prompt("Введіть ваш ліміт витрат на місяць (грн):", appData.settings.budget || 0);
     if (limit !== null && !isNaN(limit)) {
         appData.settings.budget = parseFloat(limit);
-        saveData();
+        saveData(); renderMonitoring();
     }
 }
 
@@ -425,7 +392,7 @@ function renderMonitoring() {
     }
 }
 
+// Запуск
 window.onload = () => { 
-    // Initial fetch handled by onSnapshot
-    setOpType('expense'); setDebtType('they_owe_me');
+    applyTheme(); updateSelects(); renderSources(); setOpType('expense'); setDebtType('they_owe_me');
 };

@@ -110,7 +110,17 @@
             </div>
         </div>
         <div class="total-badge text-blue" id="monTotalBalance">0 ₴</div>
-        <div id="monitoringList"></div>
+        <div id="monitoringList" style="margin-bottom: 16px;"></div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 12px;">Резервна копія (Бек-ап)</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Зберігайте файл перед оновленням програми, щоб не втратити дані.</p>
+            <div class="btn-group">
+                <button class="btn btn-blue" onclick="exportData()">⬇️ Скачати</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                <button class="btn btn-orange" onclick="document.getElementById('importFile').click()">⬆️ Завантажити</button>
+            </div>
+        </div>
     </div>
 
     <div class="bottom-nav">
@@ -164,15 +174,6 @@
         </div>
     </div>
 
-    <script type="importmap">
-      {
-        "imports": {
-          "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
-        }
-      }
-    </script>
-    
-    <script type="module" src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
